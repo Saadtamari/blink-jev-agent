@@ -201,6 +201,16 @@ export function Landing() {
     <div className="space-y-24 pb-20 pt-4">
       <StatsStrip />
 
+      <Section eyebrow="Watch · 60 seconds" title="See Blink in one minute."
+        sub="Why web agents are slow today, and how Blink answers the same question with four tabs and Jev doing the clicking.">
+        <Card className="p-2 sm:p-3">
+          <video src="/blink-demo.mp4" poster="/blink-demo-poster.jpg" controls playsInline preload="metadata"
+            className="aspect-video w-full rounded-xl bg-slate-950" aria-label="Blink demo video">
+            Your browser can&apos;t play this video. <a href="/blink-demo.mp4">Download it</a>.
+          </video>
+        </Card>
+      </Section>
+
       <Section eyebrow="How it works" title="One goal in. One answer out."
         sub="The LLM thinks once. Jev makes every on-screen decision, in parallel tabs, and the answer comes back with a source for every number.">
         <Card className="px-2 py-4 sm:px-6"><Architecture /></Card>
