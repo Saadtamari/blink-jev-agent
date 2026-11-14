@@ -7,7 +7,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 
-from . import planner
+from . import fx, planner
 from .baseline.llm_only_agent import run_baseline
 from .branch_runner import run_branch
 from .browser import BrowserPool
@@ -36,18 +36,70 @@ async def run_blink(ctx: RunContext, pool: BrowserPool, goal: str, use_plan_cach
     t0 = time.time()
     graph = await planner.plan(ctx, goal, use_cache=use_plan_cache)
     ctx.emit("plan", {"graph": graph.model_dump(), "plan_ms": int((time.time() - t0) * 1000)})
+    # FX tabs don't count against the main parallel limit: they are tiny one-step branches
     sem = asyncio.Semaphore(ctx.settings.max_parallel_branches)
+    fx_sem = asyncio.Semaphore(3)
 
-    async def one(branch):
-        async with sem:
+    async def one(branch, s=sem):
+        async with s:
             bctx = await pool.new_context()
             try:
                 return await run_branch(ctx, bctx, branch)
             finally:
                 await bctx.close()
 
-    results: list[BranchResult] = await asyncio.gather(*(one(b) for b in graph.branches), return_exceptions=False)
-    return await synthesize(ctx, goal, results, graph.synthesis_instructions)
+    # currency normalization: start an FX tab as soon as a branch returns prices in a new currency
+    fx_tasks: dict[str, asyncio.Task] = {}
+    fx_known: dict[str, float] = {}
+
+    def want_fx(frm: str, to: str) -> None:
+        key = f"{frm}->{to}"
+        if frm == to or key in fx_tasks or key in fx_known:
+            return
+        cached = fx.cached_rate(frm, to)
+        if cached:  # read by Blink earlier (< 6 h ago): no tab needed
+            fx_known[key] = cached
+            ctx.emit("log", {"fx_cache": {"pair": key, "rate": cached}})
+            return
+        if len(fx_tasks) < 4:
+            b = fx.fx_branch(frm, to)
+            ctx.emit("plan_add", {"branch": b.model_dump(), "reason": f"prices found in {frm}" if to == "USD"
+                                  else f"show totals in {frm if to == 'USD' else to}"})
+            fx_tasks[key] = asyncio.create_task(one(b, fx_sem))
+
+    home = (graph.home_currency or "").upper().strip()
+    if home and home != "USD" and len(home) == 3:
+        want_fx("USD", home)  # known up front: runs in parallel with the main branches
+
+    async def main_branch(b):
+        r = await one(b)
+        for cur in fx.currencies_in(r.extracted) - {"USD"}:
+            want_fx(cur, "USD")
+        return r
+
+    results: list[BranchResult] = await asyncio.gather(*(main_branch(b) for b in graph.branches))
+    to_usd: dict[str, float] = {"USD": 1.0}
+    usd_to_home: float | None = None
+    found = dict(fx_known)
+    for key, task in fx_tasks.items():
+        rate = fx.rate_from(await task)
+        if rate:
+            found[key] = rate
+            fx.save_rate(*key.split("->"), rate)
+    for key, rate in found.items():
+        frm, to = key.split("->")
+        if rate:
+            if to == "USD":
+                to_usd[frm] = rate
+            else:
+                usd_to_home = rate
+    fx.convert_items(results, to_usd)
+    seen = set().union(*(fx.currencies_in(r.extracted) for r in results)) if results else set()
+    missing = sorted(c for c in seen if c not in to_usd)
+    rates = {"to_usd": to_usd, "home_currency": home or None, "usd_to_home": usd_to_home,
+             "missing_rates": missing, "source": "wise.com (read by Blink)"}
+    ctx.emit("log", {"fx": rates})
+    return await synthesize(ctx, goal, results, graph.synthesis_instructions, rates=rates)
 
 
 class RunManager:

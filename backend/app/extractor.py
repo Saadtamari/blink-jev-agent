@@ -32,7 +32,7 @@ async def _visible_text(page: Page, box) -> str:
     try:
         if box is not None:
             return await page.evaluate(_REGION_TEXT_JS, [box.x, box.y, box.w, box.h])
-        return (await page.evaluate("() => document.body.innerText"))[:5000]
+        return (await page.evaluate("() => document.body.innerText"))[:12000]
     except Exception:
         return ""
 
@@ -49,7 +49,10 @@ async def extract(ctx: RunContext, page: Page, shot: Shot, step: Step, p: Percep
     else:
         image = shot.send
         used = "full_screenshot"
-    text = await _visible_text(page, box)
+    region_text = await _visible_text(page, box) if box is not None else ""
+    # long tables/lists continue below the fold: also give the LLM the page's text (cheap, no extra calls)
+    page_text = await _visible_text(page, None)
+    text = (region_text + "\n--- full page text ---\n" + page_text) if region_text else page_text
     schema = step.extract_schema or {"value": "string", "price": "number", "currency": "string"}
     user = (f"Branch goal: {branch_goal}\nWhat to extract: {target}\nPage URL: {page.url}\n"
             f"Fields per item (JSON schema-ish): {json.dumps(schema)}\n"

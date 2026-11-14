@@ -27,6 +27,7 @@ class TaskGraph(BaseModel):
     goal: str
     branches: list[Branch]
     synthesis_instructions: str = ""
+    home_currency: str | None = None  # e.g. "EGP" for a traveller from Cairo: totals are also shown in it
 
 
 class PageState(str, Enum):
@@ -121,7 +122,7 @@ class FinalAnswer(BaseModel):
 
 
 EventType = Literal[
-    "run_start", "plan", "branch_start", "step_start", "jev_call", "llm_call", "action",
+    "run_start", "plan", "plan_add", "branch_start", "step_start", "jev_call", "llm_call", "action",
     "step_end", "handoff", "handoff_resolved", "branch_end", "partial", "final",
     "metrics", "error", "screenshot", "run_end", "log",
 ]

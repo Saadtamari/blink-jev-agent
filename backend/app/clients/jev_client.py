@@ -44,12 +44,18 @@ class Perception:
 
     @property
     def locate_conf(self) -> float:
-        """Combined confidence that the box is the real target."""
+        """Combined confidence that the box is the real target.
+
+        Measured on real Jev 1.14 (scripts/jev_box_probe.py): boxes hit the right element 8/8 times while
+        Box confidence ranged 0.41-0.94, i.e. Box confidence reflects box tightness, not correctness.
+        So the companion noul ("is <target> visible?") is the main signal; a very low Box confidence
+        only lowers it.
+        """
         if self.box is None:
             return 0.0
-        vis = self.target_visible if self.target_visible is not None else 1.0
-        bc = self.box.confidence if self.box.confidence else vis
-        return round(min(vis, bc), 3)
+        vis = self.target_visible if self.target_visible is not None else 0.0
+        bc = self.box.confidence or 0.0
+        return round(vis if bc >= 0.3 else vis * 0.7, 3)
 
 
 class JevBase:

@@ -84,6 +84,14 @@ function apply(state: RunState, e: BlinkEvent): RunState {
         a.branches[b.id] = br;
       }
       break;
+    case "plan_add": {
+      const nb = p.branch;
+      const br = { ...ensureBranch(a, nb.id, nb.goal) };
+      br.plannedSteps = nb.steps;
+      br.startUrl = nb.start_url;
+      a.branches[nb.id] = br;
+      break;
+    }
     case "branch_start":
       if (branch) {
         branch.status = "running";

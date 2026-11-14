@@ -18,8 +18,13 @@ Reply with JSON only, matching this shape:
       ]
     }
   ],
-  "synthesis_instructions": "how to combine the branch results into the final answer"
+  "synthesis_instructions": "how to combine the branch results into the final answer",
+  "home_currency": "EGP"
 }
+
+home_currency: the ISO code of the user's own currency when it is clear (traveller from Cairo -> EGP, from Riyadh -> SAR), else null.
+The agent fetches exchange rates by itself, so do NOT add a currency branch.
+For trip-cost goals use these 4 branches: flights, hotels, daily living costs, visa requirements.
 
 Actions: goto (value = url), click (target), type (target + value), select (target + value), press (value = key, e.g. Enter), scroll (value = up/down), wait (value = seconds), extract (target = region to read + extract_schema).
 
@@ -27,6 +32,9 @@ Rules for speed:
 - Use 2 to 4 branches. Branches must not depend on each other.
 - PREFER DIRECT URLS that already contain the search (query parameters, dates, places). Then the branch is often just one or two extract steps. This is the biggest speed win.
 - Keep each branch short: at most 6 steps.
+- Do NOT add "wait" steps: the executor already waits for pages to load.
+- Each branch visits ONE site. Need two sites? Make two branches (up to 4 in total), e.g. "visa" and "currency" separately.
+- Get prices in USD (use the currency parameters shown for each site below).
 - Every type/click step needs an "expect" that can be checked on screen. Quote the exact text you expect, like 'Tokyo'.
 - Each branch MUST end with at least one "extract" step.
 - Targets describe the visible label or look, e.g. "the blue 'Search' button", "the 'Check-in' date field".

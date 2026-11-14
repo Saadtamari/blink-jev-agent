@@ -15,7 +15,11 @@ _CACHE = DATA_DIR / "plan_cache.json"
 
 
 def _key(goal: str) -> str:
-    return hashlib.sha1(" ".join(re.findall(r"\w+", goal.lower())).encode()).hexdigest()[:16]
+    # include the planner prompt + site list + model, so editing them invalidates old cached plans
+    from .config import get_settings
+    version = load_prompt("planner") + load_prompt("sites") + get_settings().llm_planner_model
+    norm = " ".join(re.findall(r"\w+", goal.lower()))
+    return hashlib.sha1((norm + "|" + version).encode()).hexdigest()[:16]
 
 
 def _load_cache() -> dict:
