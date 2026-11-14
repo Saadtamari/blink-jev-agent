@@ -35,3 +35,5 @@ Rules:
   price lookups or facts set "additive": false (the code then shows no total).
 - The summary must match the table. NEVER write a total, a sum or a price range for the whole thing in the summary:
   the code appends the exact totals sentence itself. Describe what is included and the key facts (e.g. visa) instead.
+- A branch with status "stopped" was skipped by the user, not answered in time, or blocked on every website.
+  Keep its row with null values and the note "skipped" (or "blocked"); never estimate it.

@@ -86,7 +86,8 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
                 carry, i = None, 0
                 continue
             if stop in ("handoff_failed", "switch_site"):
-                result.status = "waiting_user"
+                # the user skipped it, didn't answer, or every website blocked us: this tab stops here
+                result.status = "stopped"
                 break
             if res.status == "failed":
                 failures += 1

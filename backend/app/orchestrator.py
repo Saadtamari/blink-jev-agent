@@ -168,6 +168,19 @@ class RunManager:
                 return True
         return False
 
+    def skip_branch(self, run_id: str, branch_id: str) -> bool:
+        """The user doesn't want to do the check / sign-in: stop that tab, keep the rest of the run going."""
+        run = self.runs.get(run_id)
+        if not run:
+            return False
+        for ctx in run.contexts.values():
+            ev = ctx.continue_events.get(branch_id)
+            if ev:
+                ctx.skipped.add(branch_id)
+                ev.set()
+                return True
+        return False
+
     def cancel(self, run_id: str) -> bool:
         run = self.runs.get(run_id)
         if not run:

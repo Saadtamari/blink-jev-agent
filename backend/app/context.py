@@ -28,6 +28,7 @@ class RunContext:
     use_site_memory: bool = True
     # handoff: branch_id -> asyncio.Event set when the user clicks Continue
     continue_events: dict[str, asyncio.Event] = field(default_factory=dict)
+    skipped: set[str] = field(default_factory=set)  # branches the user chose to skip at a handoff
     cancelled: bool = False
 
     @property

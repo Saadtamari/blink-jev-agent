@@ -73,7 +73,7 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
     shot = await screenshot(page, ctx.dir / "shots", f"{branch_id}_handoff_{int(time.time())}")
     ctx.emit("handoff", {"kind": state.value, "reason": reason, "url": page.url,
                          "screenshot": shot.path, "message":
-                         "Your turn: please complete this check in the browser window, then press Continue."},
+                         "Your turn: complete this check in the browser window and press Continue, or press Skip to stop this tab."},
              branch_id=branch_id)
     notify_user(ctx, branch_id, "login" if state.value == "login" else "verify",
                 f"{domain_of(page.url) or 'This site'} needs you",
@@ -81,11 +81,19 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
                 "Complete the human check (for example press and hold) in the browser window, then press Continue.",
                 page.url, blocking=True)
     deadline = time.time() + (timeout_s or ctx.settings.handoff_timeout_s)
+    waited_from = time.time()
     start_url = page.url
     ticks = 0
-    while time.time() < deadline and not ctx.cancelled:
+    outcome = "timeout"
+    ctx.skipped.discard(branch_id)
+    while time.time() < deadline:
+        if ctx.cancelled:
+            outcome = "cancelled"
+            break
         try:
             await asyncio.wait_for(ev.wait(), timeout=3.0)
+            # Continue or Skip was pressed
+            outcome = "skipped" if branch_id in ctx.skipped else "resolved"
             break
         except asyncio.TimeoutError:
             pass
@@ -95,18 +103,26 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
             if ctx.agent != "blink":
                 # the baseline has no Jev: resume only when the URL changes
                 if page.url != start_url:
+                    outcome = "resolved"
                     break
             elif page.url != start_url or ticks % 2 == 0:
                 shot = await screenshot(page)
                 p = await ctx.jev.perceive(shot, context="Checking whether the user finished a check.")
                 if p.state not in HANDOFF_STATES:
+                    outcome = "resolved"
                     break
         except Exception:
             pass
-    else:
-        ctx.emit("handoff_resolved", {"resolved": False, "reason": "timeout or cancelled"}, branch_id=branch_id)
+    waited = round(time.time() - waited_from, 1)
+    ctx.metrics.human_wait_s += waited
+    if outcome != "resolved":
+        reason = {"skipped": "you chose to skip this step", "cancelled": "the run was stopped",
+                  "timeout": "no answer in time"}[outcome]
+        ctx.emit("handoff_resolved", {"resolved": False, "outcome": outcome, "reason": reason, "waited_s": waited},
+                 branch_id=branch_id)
         return False
-    ctx.emit("handoff_resolved", {"resolved": True, "url": page.url}, branch_id=branch_id)
+    ctx.emit("handoff_resolved", {"resolved": True, "outcome": "resolved", "url": page.url, "waited_s": waited},
+             branch_id=branch_id)
     await save_site_state(page)
     return True
 

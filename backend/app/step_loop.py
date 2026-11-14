@@ -231,7 +231,8 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
     if stop == "payment":
         return done("blocked", note="payment page"), None, "payment"
     if stop == "handoff_failed":
-        return done("handoff", note="user did not complete the check"), None, "handoff_failed"
+        note = "skipped by you" if branch.id in ctx.skipped else "no answer to the check in time"
+        return done("handoff", note=note), None, "handoff_failed"
     if stop == "switch_site":
         return done("skipped", note=f"{p.state.value.replace('_', ' ')} on this site: switching website"), None, stop
 

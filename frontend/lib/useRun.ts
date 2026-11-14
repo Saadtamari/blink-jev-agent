@@ -25,7 +25,7 @@ export type BranchState = {
 
 export type Notice = {
   id: string; kind: string; title: string; message: string; url?: string | null;
-  blocking: boolean; branch: string; ts: number; resolved?: boolean;
+  blocking: boolean; branch: string; ts: number; resolved?: boolean; outcome?: string;
 };
 
 export type AgentState = {
@@ -38,6 +38,9 @@ export type AgentState = {
   endedAt?: number;
   errors: string[];
   notices: Notice[];
+  waiting: Record<string, number>; // branch -> when it started waiting for the user
+  pausedSince?: number; // timer paused while at least one tab waits for the user
+  pausedTotal: number;
   calls: { kind: "jev" | "llm"; purpose: string; ms: number; cost: number; ts: number }[];
 };
 
@@ -52,7 +55,7 @@ export type RunState = {
   eventCount: number;
 };
 
-const emptyAgent = (): AgentState => ({ branches: {}, order: [], errors: [], notices: [], calls: [] });
+const emptyAgent = (): AgentState => ({ branches: {}, order: [], errors: [], notices: [], waiting: {}, pausedTotal: 0, calls: [] });
 const initial: RunState = { status: "idle", agents: { blink: emptyAgent(), baseline: emptyAgent() }, eventCount: 0 };
 
 function ensureBranch(a: AgentState, id: string, goal = ""): BranchState {
@@ -140,6 +143,10 @@ function apply(state: RunState, e: BlinkEvent): RunState {
       }
       break;
     case "handoff":
+      if (bid && p.kind !== "payment" && !(bid in a.waiting)) {
+        if (!Object.keys(a.waiting).length) a.pausedSince = e.ts;
+        a.waiting = { ...a.waiting, [bid]: e.ts };
+      }
       if (branch) {
         branch.handoff = p as BranchState["handoff"];
         if (p.kind !== "payment") branch.status = "waiting_user";
@@ -154,7 +161,17 @@ function apply(state: RunState, e: BlinkEvent): RunState {
       break;
     }
     case "handoff_resolved":
-      if (bid && p.resolved) a.notices = a.notices.map((n) => (n.branch === bid && n.blocking ? { ...n, resolved: true } : n));
+      if (bid && bid in a.waiting) {
+        const rest = { ...a.waiting };
+        delete rest[bid];
+        a.waiting = rest;
+        if (!Object.keys(rest).length && a.pausedSince) {
+          a.pausedTotal += e.ts - a.pausedSince;
+          a.pausedSince = undefined;
+        }
+      }
+      if (bid) a.notices = a.notices.map((n) => (n.branch === bid && n.blocking && !n.resolved
+        ? { ...n, resolved: true, outcome: p.outcome || (p.resolved ? "resolved" : "timeout") } : n));
       if (branch) {
         branch.handoff = undefined;
         branch.status = "running";
@@ -187,6 +204,14 @@ function apply(state: RunState, e: BlinkEvent): RunState {
       break;
     case "run_end":
       s.status = "done";
+      // stop every timer when the run ends, even without an answer (stopped / cancelled runs)
+      for (const k of ["blink", "baseline"] as const) {
+        const ag = s.agents[k];
+        if (ag.startedAt && !ag.endedAt) {
+          const paused = ag.pausedSince ? e.ts - ag.pausedSince : 0;
+          s.agents[k] = { ...ag, endedAt: e.ts, pausedTotal: ag.pausedTotal + paused, pausedSince: undefined, waiting: {} };
+        }
+      }
       break;
   }
   return s;

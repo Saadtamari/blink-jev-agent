@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     conf_check: float = 0.60
     max_step_retries: int = 2
     step_timeout_s: float = 30
-    handoff_timeout_s: float = 600
+    handoff_timeout_s: float = 180  # stop a tab if the user doesn't answer a check within 3 minutes
     fallback_handoff_s: float = 45  # wait this long for a bot check when the branch has a fallback site
     screenshot_max_width: int = 1280
     viewport_width: int = 1366

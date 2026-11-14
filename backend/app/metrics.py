@@ -21,6 +21,7 @@ class Metrics:
     steps_by_path: dict[str, int] = field(default_factory=dict)
     handoffs: int = 0
     cache_hits: int = 0
+    human_wait_s: float = 0.0  # time spent waiting for the user (not Blink's own speed)
 
     def add_jev(self, cost: float, ms: int, tin: int = 0, tout: int = 0) -> None:
         self.jev_calls += 1
@@ -60,4 +61,6 @@ class Metrics:
             "steps_by_path": dict(self.steps_by_path),
             "handoffs": self.handoffs,
             "cache_hits": self.cache_hits,
+            "human_wait_s": round(self.human_wait_s, 1),
+            "active_s": round(max(0.0, self.elapsed_s - self.human_wait_s), 2),
         }

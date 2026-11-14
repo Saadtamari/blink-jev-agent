@@ -62,19 +62,26 @@ export function useTicker(running: boolean) {
   return now;
 }
 
-export function Counters({ label, metrics, startedAt, endedAt, accent }: {
+export function Counters({ label, metrics, startedAt, endedAt, accent, pausedSince, pausedTotal = 0 }: {
   label: string; metrics?: Metrics; startedAt?: number; endedAt?: number; accent: string;
+  pausedSince?: number; pausedTotal?: number;
 }) {
-  const running = !!startedAt && !endedAt;
-  const now = useTicker(running);
-  const elapsed = startedAt ? ((endedAt || now) - startedAt) : 0;
+  const paused = !!pausedSince && !endedAt;
+  const running = !!startedAt && !endedAt && !paused;
+  const now = useTicker(!!startedAt && !endedAt);
+  const end = endedAt || now;
+  // Blink's own time: waiting for you is not counted
+  const waited = pausedTotal + (pausedSince && !endedAt ? end - pausedSince : 0);
+  const elapsed = startedAt ? Math.max(0, end - startedAt - waited) : 0;
   return (
     <div className="flex flex-wrap items-stretch gap-3">
       <div className="min-w-36 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3">
-        <div className={`label-mono flex items-center gap-2 ${accent}`}>
-          {running && <span className="size-1.5 animate-pulse rounded-full bg-current" />}{label}
+        <div className={`label-mono flex items-center gap-2 ${paused ? "text-fuchsia-300" : accent}`}>
+          {running && <span className="size-1.5 animate-pulse rounded-full bg-current" />}
+          {paused ? "Paused · waiting for you" : label}
         </div>
-        <div className="mt-1 text-4xl font-semibold tracking-tight tabular-nums text-white">{elapsed.toFixed(1)}<span className="text-xl text-slate-400"> s</span></div>
+        <div className={`mt-1 text-4xl font-semibold tracking-tight tabular-nums ${paused ? "text-slate-400" : "text-white"}`}>{elapsed.toFixed(1)}<span className="text-xl text-slate-400"> s</span></div>
+        {waited >= 0.5 && <div className="mt-0.5 text-[11px] text-slate-500">+{waited.toFixed(0)} s waiting for you, not counted</div>}
       </div>
       <Stat k="Cost" prefix="$" v={metrics?.total_cost ?? 0} decimals={4} />
       <Stat k="Jev calls" v={metrics?.jev_calls ?? 0} tone="text-emerald-300" />
@@ -98,8 +105,9 @@ function Stat({ k, v, prefix = "", decimals = 0, tone = "text-slate-100" }: {
   );
 }
 
-export function BranchTile({ b, viewport, onContinue, compact }: {
-  b: BranchState; viewport: { width: number; height: number }; onContinue: (id: string) => void; compact?: boolean;
+export function BranchTile({ b, viewport, onContinue, onSkip, compact }: {
+  b: BranchState; viewport: { width: number; height: number }; onContinue: (id: string) => void;
+  onSkip?: (id: string) => void; compact?: boolean;
 }) {
   const current = [...b.steps].reverse().find((s) => s.running) || b.steps[b.steps.length - 1];
   const box = b.lastBox && (!b.lastBox.shot || b.lastBox.shot === b.lastShot) ? b.lastBox : undefined;
@@ -142,10 +150,18 @@ export function BranchTile({ b, viewport, onContinue, compact }: {
               </div>
               <div className="mt-1 text-xs text-slate-200">{b.handoff.message}</div>
               {b.handoff.kind !== "payment" ? (
-                <button onClick={() => onContinue(b.id)}
-                  className="mt-3 rounded-lg bg-fuchsia-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-fuchsia-400">
-                  Continue
-                </button>
+                <div className="mt-3 flex justify-center gap-2">
+                  <button onClick={() => onContinue(b.id)}
+                    className="rounded-lg bg-fuchsia-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-fuchsia-400">
+                    I did it · Continue
+                  </button>
+                  {onSkip && (
+                    <button onClick={() => onSkip(b.id)}
+                      className="rounded-lg border border-white/20 px-4 py-1.5 text-sm text-slate-200 hover:bg-white/10">
+                      Skip · stop this tab
+                    </button>
+                  )}
+                </div>
               ) : b.handoff.url ? (
                 <a href={b.handoff.url} target="_blank" rel="noreferrer" className="mt-3 inline-block text-xs text-orange-200 underline">
                   Open the page

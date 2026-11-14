@@ -11,7 +11,9 @@ const KIND = {
 } as const;
 
 /** Things only the user can do (pass a human check, sign in, pay). Stays visible for the whole run. */
-export function NeedsYou({ notices }: { notices: Notice[] }) {
+export function NeedsYou({ notices, onContinue, onSkip }: {
+  notices: Notice[]; onContinue?: (branch: string) => void; onSkip?: (branch: string) => void;
+}) {
   if (!notices.length) return null;
   return (
     <section aria-label="Needs you" className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 backdrop-blur-sm">
@@ -23,7 +25,9 @@ export function NeedsYou({ notices }: { notices: Notice[] }) {
         {notices.map((n) => {
           const k = KIND[n.kind as keyof typeof KIND] || KIND.verify;
           const Icon = k.icon;
-          const status = n.resolved ? "Done" : n.blocking ? "Waiting for you" : n.kind === "payment" ? "Your decision" : "Optional · run continues";
+          const done: Record<string, string> = { skipped: "Skipped · tab stopped", timeout: "No answer · tab stopped", cancelled: "Run stopped" };
+          const status = n.resolved ? done[n.outcome || ""] || "Done"
+            : n.blocking ? "Waiting for you" : n.kind === "payment" ? "Your decision · tab stopped" : "Optional · run continues";
           return (
             <div key={n.id} className={cn("flex gap-3 rounded-xl border p-3.5", k.ring, n.resolved && "opacity-60")}>
               <span className={cn("mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-slate-950/70", k.tone)}>
@@ -38,6 +42,12 @@ export function NeedsYou({ notices }: { notices: Notice[] }) {
                 <p className="mt-1 text-xs leading-relaxed text-slate-400">{n.message}</p>
                 <div className="mt-2 flex items-center gap-3 text-xs">
                   <span className="label-mono text-slate-500">{k.label} · {n.branch}</span>
+                  {n.blocking && !n.resolved && onContinue && (
+                    <button onClick={() => onContinue(n.branch)} className="font-medium text-fuchsia-300 hover:underline">I did it · Continue</button>
+                  )}
+                  {n.blocking && !n.resolved && onSkip && (
+                    <button onClick={() => onSkip(n.branch)} className="text-slate-300 hover:underline">Skip</button>
+                  )}
                   {n.url && (
                     <a href={n.url} target="_blank" rel="noreferrer"
                       className={cn("inline-flex items-center gap-1 font-medium hover:underline", k.tone)}>

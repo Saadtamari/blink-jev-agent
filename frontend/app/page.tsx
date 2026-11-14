@@ -74,6 +74,10 @@ function MissionControl() {
     if (runId) await postJSON(`/runs/${runId}/branches/${branchId}/continue`);
   }
 
+  async function onSkip(branchId: string) {
+    if (runId) await postJSON(`/runs/${runId}/branches/${branchId}/skip`);
+  }
+
   const viewport = config?.viewport || { width: 1366, height: 900 };
   const running = !!runId && run.status === "running";
   const blink = run.agents.blink;
@@ -174,8 +178,8 @@ function MissionControl() {
 
       {runId ? (
         run.mode === "race"
-          ? <RaceView blink={blink} base={base} viewport={viewport} onContinue={onContinue} />
-          : <AgentView agent={blink} label="Blink" accent="text-sky-300" viewport={viewport} onContinue={onContinue} withFeed />
+          ? <RaceView blink={blink} base={base} viewport={viewport} onContinue={onContinue} onSkip={onSkip} />
+          : <AgentView agent={blink} label="Blink" accent="text-sky-300" viewport={viewport} onContinue={onContinue} onSkip={onSkip} withFeed />
       ) : (
         <Landing />
       )}
@@ -183,17 +187,18 @@ function MissionControl() {
   );
 }
 
-function AgentView({ agent, label, accent, viewport, onContinue, compact, withFeed }: {
+function AgentView({ agent, label, accent, viewport, onContinue, onSkip, compact, withFeed }: {
   agent: AgentState; label: string; accent: string; viewport: { width: number; height: number };
-  onContinue: (branchId: string) => void; compact?: boolean; withFeed?: boolean;
+  onContinue: (branchId: string) => void; onSkip?: (branchId: string) => void; compact?: boolean; withFeed?: boolean;
 }) {
   const branches = agent.order.map((id) => agent.branches[id]);
   const cols = compact ? "grid-cols-[minmax(0,1fr)] sm:grid-cols-[repeat(2,minmax(0,1fr))]" : "grid-cols-[minmax(0,1fr)] md:grid-cols-[repeat(2,minmax(0,1fr))]";
   const partials = useMemo(() => branches.flatMap((b) => b.extracted.map((x) => ({ b: b.id, x }))), [branches]);
   const main = (
     <section className="min-w-0 space-y-4">
-      <Counters label={label} metrics={agent.metrics} startedAt={agent.startedAt} endedAt={agent.endedAt} accent={accent} />
-      <NeedsYou notices={agent.notices} />
+      <Counters label={label} metrics={agent.metrics} startedAt={agent.startedAt} endedAt={agent.endedAt} accent={accent}
+        pausedSince={agent.pausedSince} pausedTotal={agent.pausedTotal} />
+      <NeedsYou notices={agent.notices} onContinue={onContinue} onSkip={onSkip} />
       {agent.plan && (
         <div className="text-xs text-slate-500">
           {agent.plan.graph.branches.length} parallel branches{" "}
@@ -202,7 +207,7 @@ function AgentView({ agent, label, accent, viewport, onContinue, compact, withFe
       )}
       {!branches.length && !agent.final && <div className="animate-pulse text-sm text-slate-400">Planning…</div>}
       <div className={`grid gap-4 ${cols}`}>
-        {branches.map((b) => <BranchTile key={b.id} b={b} viewport={viewport} onContinue={onContinue} compact={compact} />)}
+        {branches.map((b) => <BranchTile key={b.id} b={b} viewport={viewport} onContinue={onContinue} onSkip={onSkip} compact={compact} />)}
       </div>
       {!agent.final && partials.length > 0 && !withFeed && (
         <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs text-slate-300">
@@ -237,9 +242,9 @@ function AgentView({ agent, label, accent, viewport, onContinue, compact, withFe
   );
 }
 
-function RaceView({ blink, base, viewport, onContinue }: {
+function RaceView({ blink, base, viewport, onContinue, onSkip }: {
   blink: AgentState; base: AgentState; viewport: { width: number; height: number };
-  onContinue: (branchId: string) => void;
+  onContinue: (branchId: string) => void; onSkip: (branchId: string) => void;
 }) {
   const blinkDone = blink.endedAt && blink.startedAt ? blink.endedAt - blink.startedAt : null;
   const baseDone = base.endedAt && base.startedAt ? base.endedAt - base.startedAt : null;
@@ -259,9 +264,9 @@ function RaceView({ blink, base, viewport, onContinue }: {
       )}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <AgentView agent={blink} label="Blink · LLM plans, Jev clicks" accent="text-sky-300" viewport={viewport}
-          onContinue={onContinue} compact />
+          onContinue={onContinue} onSkip={onSkip} compact />
         <AgentView agent={base} label="LLM-only agent" accent="text-amber-300" viewport={viewport}
-          onContinue={onContinue} compact />
+          onContinue={onContinue} onSkip={onSkip} compact />
       </div>
     </div>
   );

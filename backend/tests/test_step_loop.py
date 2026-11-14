@@ -160,3 +160,24 @@ async def test_bot_check_switches_site_immediately(pool, make_ctx, fixture_url):
 def test_branch_merges_old_fallback_field():
     b = Branch(id="x", goal="g", start_url="https://a", steps=[], fallback_url="https://b", fallback_urls=["https://c"])
     assert b.fallback_urls == ["https://b", "https://c"] and b.fallback_url is None
+
+
+async def test_user_can_skip_a_check(pool, make_ctx, fixture_url):
+    ctx = make_ctx(handoff_timeout_s=30)
+    b = Branch(id="bot", goal="get past the check", start_url=f"{fixture_url}/botcheck.html", steps=[
+        Step(id="s1", action="extract", target="the page")])
+    bctx = await pool.new_context()
+    task = asyncio.create_task(run_branch(ctx, bctx, b))
+    for _ in range(100):
+        if any(e.type == "handoff" for e in ctx.events.events):
+            break
+        await asyncio.sleep(0.1)
+    ctx.skipped.add("bot")                 # what POST /branches/bot/skip does
+    ctx.continue_events["bot"].set()
+    res = await asyncio.wait_for(task, 10)  # stops right away, no 30 s wait
+    await bctx.close()
+    assert res.status == "stopped"
+    resolved = [e.payload for e in ctx.events.events if e.type == "handoff_resolved"]
+    assert resolved and resolved[0]["outcome"] == "skipped"
+    assert res.steps[-1].note == "skipped by you"
+    assert ctx.metrics.human_wait_s >= 0

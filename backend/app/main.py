@@ -101,6 +101,11 @@ async def continue_branch(run_id: str, branch_id: str):
     return {"ok": _mgr().continue_branch(run_id, branch_id)}
 
 
+@app.post("/runs/{run_id}/branches/{branch_id}/skip")
+async def skip_branch(run_id: str, branch_id: str):
+    return {"ok": _mgr().skip_branch(run_id, branch_id)}
+
+
 @app.post("/runs/{run_id}/cancel")
 async def cancel(run_id: str):
     return {"ok": _mgr().cancel(run_id)}
