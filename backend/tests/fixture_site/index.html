@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SkyFind - cheap flights</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1b2430; }
+  header { background: #1c4fd8; color: #fff; padding: 18px 40px; font-size: 26px; font-weight: bold; }
+  main { padding: 40px; }
+  form { background: #fff; padding: 28px; border-radius: 10px; display: flex; gap: 16px; align-items: end; flex-wrap: wrap; box-shadow: 0 2px 8px #0001; }
+  label { display: flex; flex-direction: column; font-size: 14px; gap: 6px; }
+  input { font-size: 18px; padding: 10px; width: 200px; border: 1px solid #9aa7b8; border-radius: 6px; }
+  button { font-size: 18px; padding: 12px 28px; border: 0; border-radius: 6px; background: #ff7a1a; color: #fff; cursor: pointer; }
+  .cookie-banner { position: fixed; left: 0; right: 0; bottom: 0; background: #222; color: #fff; padding: 22px 40px; display: flex; gap: 16px; align-items: center; font-size: 16px; }
+  .cookie-banner button { background: #555; font-size: 15px; padding: 10px 18px; }
+  .cookie-banner button.accept { background: #2e9d4f; }
+</style>
+</head>
+<body>
+<header>SkyFind</header>
+<main>
+  <h1>Find cheap flights</h1>
+  <form id="search" action="results.html" method="get">
+    <label for="from">From<input id="from" name="from" placeholder="Leaving from"></label>
+    <label for="to">To<input id="to" name="to" placeholder="Going to"></label>
+    <label for="depart">Depart<input id="depart" name="depart" placeholder="YYYY-MM-DD"></label>
+    <label for="ret">Return<input id="ret" name="ret" placeholder="YYYY-MM-DD"></label>
+    <button type="submit" id="go">Search flights</button>
+  </form>
+  <p><a href="botcheck.html">Member deals</a></p>
+</main>
+<div class="cookie-banner" id="cookie-banner" data-blink="cookie">
+  <span>We use cookies to improve your experience.</span>
+  <button id="reject" onclick="document.getElementById('cookie-banner').remove()">Reject all</button>
+  <button class="accept" onclick="document.getElementById('cookie-banner').remove()">Accept all</button>
+</div>
+</body>
+</html>

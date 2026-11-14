@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SkyFind - results</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f3f6fb; color: #1b2430; }
+  header { background: #1c4fd8; color: #fff; padding: 18px 40px; font-size: 26px; font-weight: bold; }
+  main { padding: 30px 40px; }
+  .result { background: #fff; margin: 12px 0; padding: 18px 24px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px #0001; font-size: 18px; }
+  .price { font-size: 26px; font-weight: bold; color: #0b7a3e; }
+  a.select { background: #ff7a1a; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; }
+</style>
+</head>
+<body>
+<header>SkyFind</header>
+<main>
+  <h1 id="title">Flights</h1>
+  <div id="list"></div>
+</main>
+<script>
+  const q = new URLSearchParams(location.search);
+  const from = q.get('from') || '?', to = q.get('to') || '?';
+  document.getElementById('title').textContent = `Flights from ${from} to ${to}`;
+  const rows = [
+    ['EgyptAir', '1 stop', 612], ['Emirates', '1 stop', 745], ['Qatar Airways', '1 stop', 698], ['Turkish Airlines', '1 stop', 655],
+  ];
+  const list = document.getElementById('list');
+  for (const [air, stops, price] of rows) {
+    const d = document.createElement('div');
+    d.className = 'result';
+    d.innerHTML = `<span>${air} &middot; ${stops} &middot; ${from} &rarr; ${to}</span><span class="price">$${price}</span><a class="select" href="checkout.html">Select</a>`;
+    list.appendChild(d);
+  }
+</script>
+</body>
+</html>
