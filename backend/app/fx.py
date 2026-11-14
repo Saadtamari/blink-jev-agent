@@ -47,6 +47,7 @@ def save_rate(frm: str, to: str, rate: float) -> None:
 def fx_branch(frm: str, to: str) -> Branch:
     return Branch(id=f"fx_{frm}_{to}".lower(), goal=f"Exchange rate from {frm} to {to}",
                   start_url=FX_URL.format(fl=frm.lower(), tl=to.lower()),
+                  fallback_urls=[f"https://www.xe.com/currencyconverter/convert/?Amount=1&From={frm}&To={to}"],
                   steps=[Step(id="s1", action="extract",
                               target=f"the conversion result showing how much 1 {frm} is in {to}",
                               extract_schema={"from": "string", "to": "string", "rate": "number"})])

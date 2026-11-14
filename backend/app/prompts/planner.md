@@ -10,7 +10,7 @@ Reply with JSON only, matching this shape:
       "id": "flights",
       "goal": "one sentence sub-goal",
       "start_url": "https://...",
-      "fallback_url": "https://... (optional: a second site for the same search, used if the first one blocks us)",
+      "fallback_urls": ["https://... other websites for the SAME search, tried in order if a site shows a bot check"],
       "steps": [
         {"id": "s1", "action": "type", "target": "the 'Where to?' search field", "value": "Tokyo", "expect": "the search field shows 'Tokyo'"},
         {"id": "s2", "action": "press", "value": "Enter", "expect": "a list of results is shown"},
@@ -38,6 +38,8 @@ Rules for speed:
 - PREFER DIRECT URLS that already contain the search (query parameters, dates, places). Then the branch is often just one or two extract steps. This is the biggest speed win.
 - Keep each branch short: at most 6 steps.
 - Do NOT add "wait" steps: the executor already waits for pages to load.
+- Each branch visits ONE site at a time. ALWAYS give 1-2 fallback_urls (other websites that answer the same
+  sub-goal with a direct URL): when a site asks for human verification, Blink switches to the next one immediately.
 - Each branch visits ONE site. Need two sites? Make two branches (up to 4 in total), e.g. "visa" and "currency" separately.
 - Get prices in USD (use the currency parameters shown for each site below).
 - Every type/click step needs an "expect" that can be checked on screen. Quote the exact text you expect, like 'Tokyo'.

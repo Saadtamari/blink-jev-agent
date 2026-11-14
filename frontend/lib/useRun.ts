@@ -18,6 +18,7 @@ export type BranchState = {
   perception?: { state: string; state_conf: number; locate_conf: number; target?: string };
   handoff?: { kind: string; message: string; url?: string; reason?: string };
   extracted: Record<string, unknown>[];
+  switches?: { from: string; to: string; ts: number }[];
   startedAt?: number;
   endedAt?: number;
 };
@@ -118,6 +119,7 @@ function apply(state: RunState, e: BlinkEvent): RunState {
       break;
     case "log":
       if (branch && p.perception) branch.perception = p.perception;
+      if (branch && p.fallback) branch.switches = [...(branch.switches || []), { from: p.from || "", to: p.fallback, ts: e.ts }];
       break;
     case "step_end":
       if (branch) {

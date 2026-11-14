@@ -72,10 +72,12 @@ async def _settle_state(ctx: RunContext, page: Page, branch: Branch, step: Step,
             safety.payment_stop(ctx, page.url, branch.id, "Jev detected a payment page.")
             return shot, p, "payment"
         if p.state in HANDOFF_STATES and p.state_conf >= 0.5:
-            # with a fallback site we only wait 45 s, then switch sites instead of blocking the run
+            if branch.fallback_urls:
+                # another website can answer the same question: switch right away instead of waiting
+                return shot, p, "switch_site"
+            # no other site left: last resort, hand this tab to the user
             ok = await safety.wait_for_user(ctx, page, branch.id, p.state,
-                                            f"Jev detected a {p.state.value.replace('_', ' ')}.",
-                                            timeout_s=ctx.settings.fallback_handoff_s if branch.fallback_url else None)
+                                            f"Jev detected a {p.state.value.replace('_', ' ')}.")
             if not ok:
                 return shot, p, "handoff_failed"
             continue
@@ -230,6 +232,8 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
         return done("blocked", note="payment page"), None, "payment"
     if stop == "handoff_failed":
         return done("handoff", note="user did not complete the check"), None, "handoff_failed"
+    if stop == "switch_site":
+        return done("skipped", note=f"{p.state.value.replace('_', ' ')} on this site: switching website"), None, stop
 
     if step.action == "extract":
         try:
@@ -247,7 +251,7 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
                 ctx.emit("log", {"extract_retry": how, "reason": notes[:200]}, branch_id=branch.id)
                 shot, p, stop = await _settle_state(ctx, page, branch, step, None)
                 if stop:
-                    return done("blocked" if stop == "payment" else "handoff"), None, stop
+                    return done({"payment": "blocked", "switch_site": "skipped"}.get(stop, "handoff")), None, stop
                 data = await extractor.extract(ctx, page, shot, step, p, branch.goal)
         except Exception as e:
             return done("failed", note=f"extract failed: {str(e)[:160]}"), None, None
@@ -278,7 +282,7 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
                     attempt += 1
                     shot, p, stop = await _settle_state(ctx, page, branch, step, None)
                     if stop:
-                        return done("blocked" if stop == "payment" else "handoff"), None, stop
+                        return done({"payment": "blocked", "switch_site": "skipped"}.get(stop, "handoff")), None, stop
                     continue
                 else:
                     return done("failed", note=problem, screenshot_before=shot.path, confidence=conf), None, None
@@ -314,7 +318,7 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
             force_jev = True
             shot, p, stop = await _settle_state(ctx, page, branch, step, None)
             if stop:
-                return done("blocked" if stop == "payment" else "handoff"), None, stop
+                return done({"payment": "blocked", "switch_site": "skipped"}.get(stop, "handoff")), None, stop
 
     # no expectation to verify: just hand the next step a fresh look later
     return done(status, used=used, confidence=conf, box=box, screenshot_before=shot.path), None, None

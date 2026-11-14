@@ -1,10 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Brain, Crosshair, Hand, ShieldAlert, Coins, CheckCircle2 } from "lucide-react";
+import { Brain, Crosshair, Hand, ShieldAlert, Coins, CheckCircle2, ArrowLeftRight } from "lucide-react";
 import { AgentState } from "@/lib/useRun";
 
-export type FeedItem = { id: string; ts: number; kind: "jev" | "llm" | "handoff" | "pay" | "fx" | "done"; text: string; sub?: string };
+export type FeedItem = { id: string; ts: number; kind: "jev" | "llm" | "handoff" | "pay" | "fx" | "done" | "switch"; text: string; sub?: string };
 
 const STYLE: Record<FeedItem["kind"], { icon: React.ReactNode; ring: string }> = {
   jev: { icon: <Crosshair className="size-3.5" />, ring: "bg-emerald-500/10 text-emerald-300 ring-emerald-400/30" },
@@ -13,6 +13,7 @@ const STYLE: Record<FeedItem["kind"], { icon: React.ReactNode; ring: string }> =
   pay: { icon: <ShieldAlert className="size-3.5" />, ring: "bg-orange-500/10 text-orange-300 ring-orange-400/30" },
   fx: { icon: <Coins className="size-3.5" />, ring: "bg-sky-500/10 text-sky-300 ring-sky-400/30" },
   done: { icon: <CheckCircle2 className="size-3.5" />, ring: "bg-sky-500/10 text-sky-300 ring-sky-400/30" },
+  switch: { icon: <ArrowLeftRight className="size-3.5" />, ring: "bg-violet-500/10 text-violet-300 ring-violet-400/30" },
 };
 
 const PURPOSE: Record<string, string> = {
@@ -28,7 +29,10 @@ export function buildFeed(a: AgentState): FeedItem[] {
     text: `${c.kind === "jev" ? "Jev" : "LLM"} ${PURPOSE[c.purpose] || c.purpose}`,
     sub: `${(c.ms / 1000).toFixed(2)} s · $${(c.cost || 0).toFixed(5)}`,
   }));
+  const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } };
   for (const b of Object.values(a.branches)) {
+    for (const [i, sw] of (b.switches || []).entries()) items.push({ id: `sw-${b.id}-${i}`, ts: sw.ts, kind: "switch",
+      text: `${b.id}: switched to ${host(sw.to)}`, sub: `${sw.from ? host(sw.from) : "site"} asked for human verification` });
     if (b.handoff) items.push({ id: `h-${b.id}`, ts: b.endedAt || b.startedAt || 0, kind: b.handoff.kind === "payment" ? "pay" : "handoff",
       text: b.handoff.kind === "payment" ? `Stopped before payment on ${b.id}` : `Your turn on ${b.id}`, sub: b.handoff.reason });
     if (b.id.startsWith("fx_") && b.startedAt) items.push({ id: `fx-${b.id}`, ts: b.startedAt, kind: "fx",

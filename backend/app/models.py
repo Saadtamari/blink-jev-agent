@@ -21,7 +21,15 @@ class Branch(BaseModel):
     goal: str
     start_url: str
     steps: list[Step]
-    fallback_url: str | None = None  # used if the start site's bot check isn't solved in time
+    # other websites for the same search, tried in order the moment a site shows a bot check / login wall
+    fallback_urls: list[str] = Field(default_factory=list)
+    fallback_url: str | None = None  # older single-fallback field, merged into fallback_urls
+
+    def model_post_init(self, _ctx: Any) -> None:
+        if self.fallback_url and self.fallback_url not in self.fallback_urls:
+            self.fallback_urls.insert(0, self.fallback_url)
+        self.fallback_url = None
+        self.fallback_urls = [u for u in self.fallback_urls if u and u != self.start_url][:3]
 
 
 class TaskGraph(BaseModel):

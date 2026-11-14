@@ -138,17 +138,22 @@ async def test_follows_new_tab_and_goes_back(pool, make_ctx, fixture_url):
     assert any(e.payload.get("followed_new_tab") for e in ctx.events.events)
 
 
-async def test_bot_check_falls_back_to_second_site(pool, make_ctx, fixture_url):
+async def test_bot_check_switches_site_immediately(pool, make_ctx, fixture_url):
     llm = {"extract": {"items": [{"airline": "EgyptAir", "price": 612, "currency": "USD"}]}}
     ctx = make_ctx(llm_responses=llm)
-    ctx.settings = ctx.settings.model_copy(update={"fallback_handoff_s": 2})
     b = Branch(id="flights", goal="flights", start_url=f"{fixture_url}/botcheck.html",
-               fallback_url=f"{fixture_url}/results.html?from=Cairo&to=Tokyo", steps=[
-                   Step(id="s1", action="extract", target="the flight results with prices")])
+               fallback_urls=[f"{fixture_url}/botcheck.html?mirror=1", f"{fixture_url}/results.html?from=Cairo&to=Tokyo"],
+               steps=[Step(id="s1", action="extract", target="the flight results with prices")])
     bctx = await pool.new_context()
     res = await run_branch(ctx, bctx, b)
     await bctx.close()
-    assert any(e.type == "handoff" for e in ctx.events.events)          # asked the user first
-    assert any(e.payload.get("fallback") for e in ctx.events.events)    # then switched sites
+    switches = [e.payload for e in ctx.events.events if e.payload.get("fallback")]
+    assert len(switches) == 2                                            # skipped two bot-checked sites
+    assert not any(e.type == "handoff" for e in ctx.events.events)      # never waited for the user
     assert res.extracted and res.extracted[0]["price"] == 612
     assert res.status == "done"
+
+
+def test_branch_merges_old_fallback_field():
+    b = Branch(id="x", goal="g", start_url="https://a", steps=[], fallback_url="https://b", fallback_urls=["https://c"])
+    assert b.fallback_urls == ["https://b", "https://c"] and b.fallback_url is None

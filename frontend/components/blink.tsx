@@ -159,7 +159,11 @@ export function BranchTile({ b, viewport, onContinue, compact }: {
         <div className="min-w-0 truncate text-slate-300">
           {current ? <><span className="font-semibold text-slate-100">{current.step.action}</span> {current.step.target || current.step.value || ""}</> : "starting…"}
         </div>
-        {b.perception && <span className="shrink-0 text-slate-400">page: <span className="text-slate-200">{b.perception.state}</span></span>}
+        {b.switches?.length ? (
+          <span className="shrink-0 rounded-full bg-violet-500/10 px-2 py-0.5 text-violet-300" title="The site asked for human verification, so Blink moved to another website">
+            switched site ×{b.switches.length}
+          </span>
+        ) : b.perception && <span className="shrink-0 text-slate-400">page: <span className="text-slate-200">{b.perception.state}</span></span>}
       </div>
     </div>
   );

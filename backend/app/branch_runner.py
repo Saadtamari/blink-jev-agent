@@ -65,18 +65,20 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
             if stop == "payment":
                 result.status = "stopped"
                 break
-            if stop == "handoff_failed":
-                if branch.fallback_url:
-                    # nobody solved the bot check in time: switch to the fallback site and redo the branch
-                    fb, branch.fallback_url = branch.fallback_url, None
-                    ctx.emit("log", {"fallback": fb, "reason": "bot check not solved in time"}, branch_id=branch.id)
-                    try:
-                        await page.goto(fb, timeout=int(ctx.settings.step_timeout_s * 1000))
-                    except Exception as e:
-                        ctx.emit("error", {"where": "fallback_url", "error": str(e)[:200]}, branch_id=branch.id)
-                    await wait_settled(page)
-                    carry, i = None, 0
-                    continue
+            if stop == "switch_site" and branch.fallback_urls:
+                # this site asked for human verification: go straight to the next website and redo the branch
+                blocked_url = page.url
+                fb = branch.fallback_urls.pop(0)
+                ctx.emit("log", {"fallback": fb, "from": blocked_url,
+                                 "reason": "bot check: switching to another website"}, branch_id=branch.id)
+                try:
+                    await page.goto(fb, timeout=int(ctx.settings.step_timeout_s * 1000))
+                except Exception as e:
+                    ctx.emit("error", {"where": "fallback_url", "error": str(e)[:200]}, branch_id=branch.id)
+                await wait_settled(page)
+                carry, i = None, 0
+                continue
+            if stop in ("handoff_failed", "switch_site"):
                 result.status = "waiting_user"
                 break
             if res.status == "failed":
