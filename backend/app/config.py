@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     llm_fast_model: str = "google/gemini-2.5-flash"
     llm_vision_model: str = "google/gemini-2.5-flash"
 
+    llm_provider: str = "openrouter"  # openrouter | offline (scripted, no key; pair with JEV_PROVIDER=mock)
     jev_provider: str = "jev"  # jev | mock | llm_fallback
     jev_model: str = "typesafe/jev-1.14"
     jev_decisions_url: str = "https://openrouter.ai/api/alpha/decisions"
@@ -53,6 +54,7 @@ class Settings(BaseSettings):
             "llm_fast_model": self.llm_fast_model,
             "llm_vision_model": self.llm_vision_model,
             "jev_provider": self.jev_provider,
+            "llm_provider": self.llm_provider,
             "jev_model": self.jev_model,
             "max_parallel_branches": self.max_parallel_branches,
             "conf_act": self.conf_act,
@@ -60,6 +62,7 @@ class Settings(BaseSettings):
             "headless": self.headless,
             "demo_mode": self.demo_mode,
             "has_api_key": bool(self.openrouter_api_key),
+            "viewport": {"width": self.viewport_width, "height": self.viewport_height},
         }
 
 

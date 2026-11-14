@@ -40,6 +40,8 @@ def _sanitize(graph: TaskGraph, max_branches: int) -> TaskGraph:
 
 
 async def plan(ctx: RunContext, goal: str, use_cache: bool = True) -> TaskGraph:
+    if ctx.settings.llm_provider == "offline":
+        use_cache = False  # never mix scripted offline plans into the real cache
     cache = _load_cache() if use_cache else {}
     k = _key(goal)
     if use_cache and k in cache:

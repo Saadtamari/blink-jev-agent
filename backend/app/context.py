@@ -57,7 +57,11 @@ def build_context(run_id: str, events: RunEvents, agent: str = "blink", jev_prov
         ctx.emit("jev_call", info)
         ctx.emit_metrics()
 
-    ctx.llm = LLMClient(on_call=on_llm)
+    if ctx.settings.llm_provider == "offline":
+        from .clients.offline_llm import OfflineLLM
+        ctx.llm = OfflineLLM(on_call=on_llm)  # type: ignore[assignment]
+    else:
+        ctx.llm = LLMClient(on_call=on_llm)
     ctx.jev = make_jev(on_call=on_jev, provider=jev_provider, llm=ctx.llm)
     ctx.memory = memory
     return ctx

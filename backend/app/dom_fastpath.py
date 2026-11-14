@@ -47,7 +47,7 @@ _COLLECT_JS = r"""
 _STOP = {
     "the", "a", "an", "of", "to", "for", "in", "on", "at", "and", "or", "with", "this", "that",
     "field", "button", "input", "box", "link", "element", "area", "page", "text", "click", "icon",
-    "tab", "option", "menu", "dropdown", "select", "form", "main", "top", "bottom", "left", "right",
+    "dropdown", "form", "main",
 }
 _INPUT_WORDS = {"field", "input", "box", "textbox", "search box", "where", "type"}
 _BUTTON_WORDS = {"button", "btn"}

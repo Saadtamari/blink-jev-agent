@@ -1,0 +1,63 @@
+# 20 benchmark tasks. "check" = simple success test on the final answer:
+#   min_rows: table rows with at least one number
+#   keywords: words that must appear in the summary / notes / table (case-insensitive, any one of each group)
+- id: trip_japan
+  goal: I want to go to Japan for 7 days in March from Cairo. How much will it cost?
+  check: {min_rows: 3, keywords: [[flight], [hotel, accommodation], [visa]]}
+- id: trip_paris
+  goal: How much does a 5 day trip to Paris from London cost in April?
+  check: {min_rows: 2, keywords: [[flight, train, eurostar], [hotel, accommodation]]}
+- id: trip_istanbul
+  goal: Budget for 4 days in Istanbul from Dubai next month, flights and hotel.
+  check: {min_rows: 2, keywords: [[flight], [hotel, accommodation]]}
+- id: trip_ny_daily
+  goal: What is the average daily travel cost in New York City for a mid-range traveler?
+  check: {min_rows: 1, keywords: [[day, daily]]}
+- id: visa_egypt_uk
+  goal: Do Egyptian citizens need a visa for the United Kingdom, and what kind?
+  check: {min_rows: 0, keywords: [[visa]]}
+- id: visa_saudi_japan
+  goal: Do Saudi citizens need a visa to visit Japan?
+  check: {min_rows: 0, keywords: [[visa]]}
+- id: fx_usd_egp
+  goal: What is the current USD to EGP exchange rate?
+  check: {min_rows: 1, keywords: [[egp]]}
+- id: fx_eur_jpy
+  goal: Convert 500 euros to Japanese yen at today's rate.
+  check: {min_rows: 1, keywords: [[jpy, yen]]}
+- id: price_airpods
+  goal: Compare the price of AirPods Pro on Amazon and eBay.
+  check: {min_rows: 2, keywords: [[amazon], [ebay]]}
+- id: price_kindle
+  goal: What is the cheapest Kindle Paperwhite price on Amazon right now?
+  check: {min_rows: 1, keywords: [[kindle]]}
+- id: price_ps5
+  goal: Find the price of a PlayStation 5 console on Amazon and eBay.
+  check: {min_rows: 2, keywords: [[amazon], [ebay]]}
+- id: price_iphone
+  goal: How much is the iPhone 16 128GB on Amazon?
+  check: {min_rows: 1, keywords: [[iphone]]}
+- id: hotel_tokyo
+  goal: What is a typical nightly price for a mid-range hotel in Tokyo in March?
+  check: {min_rows: 1, keywords: [[night]]}
+- id: hotel_dubai
+  goal: Cheapest hotel prices in Dubai for 3 nights next weekend.
+  check: {min_rows: 1, keywords: [[hotel]]}
+- id: flight_cai_ist
+  goal: Cheapest round-trip flight from Cairo to Istanbul in May.
+  check: {min_rows: 1, keywords: [[flight]]}
+- id: flight_jfk_lhr
+  goal: Cheapest round-trip flight from New York to London in June.
+  check: {min_rows: 1, keywords: [[flight]]}
+- id: facts_tokyo_population
+  goal: What is the population of Tokyo and of Osaka?
+  check: {min_rows: 0, keywords: [[tokyo], [osaka]]}
+- id: cost_living_compare
+  goal: Compare the cost of living in Berlin and Madrid.
+  check: {min_rows: 2, keywords: [[berlin], [madrid]]}
+- id: trip_bali
+  goal: How much would a 10 day trip to Bali from Singapore cost in July?
+  check: {min_rows: 2, keywords: [[flight], [hotel, accommodation]]}
+- id: trip_cairo_rome
+  goal: Plan the budget for 6 days in Rome from Cairo in September.
+  check: {min_rows: 2, keywords: [[flight], [hotel, accommodation]]}
