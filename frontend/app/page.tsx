@@ -84,9 +84,9 @@ function MissionControl() {
       <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/50 backdrop-blur-sm">
         <FlickeringGrid className="absolute inset-0 [mask-image:radial-gradient(600px_circle_at_top_left,white,transparent)]"
           squareSize={3} gridGap={7} color="rgb(16, 185, 129)" maxOpacity={0.12} flickerChance={0.08} />
-        <div className="relative p-6 sm:p-8">
+        <div className="relative p-6 sm:p-10 lg:p-14">
           {!runId && (
-            <div className="mb-6 max-w-3xl">
+            <div className="mb-8 max-w-3xl">
               <div className="label-mono mb-4 inline-flex items-center gap-2 text-emerald-300">
                 <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-emerald-400" /></span>
                 Jev 1.14 · typed decisions · 4 parallel tabs

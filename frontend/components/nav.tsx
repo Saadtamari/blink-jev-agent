@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { API } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/logo";
 
 const LINKS = [
   { href: "/", label: "Mission control" },
@@ -27,7 +28,7 @@ export function Nav() {
     <header className="sticky top-0 z-30 border-b border-white/5 bg-background/75 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1600px] items-center gap-6 px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5" aria-label="Blink home">
-          <span className="grid size-7 place-items-center rounded-md bg-white text-[13px] font-semibold text-slate-950">B</span>
+          <Logo size={28} />
           <span className="text-lg font-semibold tracking-tight text-white">Blink</span>
         </Link>
         <nav className="flex items-center gap-1 overflow-x-auto text-sm">
