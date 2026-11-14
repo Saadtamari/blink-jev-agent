@@ -22,6 +22,20 @@ Japan trip goal, race mode, same machine, same models:
 | Model calls | 6 Jev + 7 LLM | 46 LLM |
 | Answer | flights, hotels, daily costs, visa, totals in USD and EGP | hotels missing |
 
+Benchmark, 6 live tasks (trips to Japan and Paris, a visa question, an exchange rate, AirPods prices, Berlin vs Madrid costs),
+one agent at a time, headless:
+
+| | Blink | LLM-only agent |
+|---|---|---|
+| Mean time per task | **16.6 s** (median 12.6 s) | 122.4 s (median 113.5 s) |
+| Mean cost per task | **$0.0115** | $0.0360 |
+| Success rate | **83 %** (5/6) | 67 % (4/6) |
+| Model calls per task | 2.5 Jev + 4.7 LLM | 30.2 LLM |
+
+**7.4× faster, 3.1× cheaper.** Blink's one failure (AirPods prices) is a site limit: eBay serves headless browsers an
+error page and Amazon hides real AirPods prices behind "See options". Blink reported "not found" rather than
+inventing prices. Running headed (`HEADLESS=false`, the default) is closer to a real user.
+
 Jev measurements (`scripts/jev_box_probe.py`): **8/8** Box answers landed on the right element, **~420 ms** and
 **~$0.00015** per call (state + visibility + box + verify questions answered together in one call).
 
