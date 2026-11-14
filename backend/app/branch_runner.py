@@ -1,0 +1,74 @@
+"""Run one branch of the task graph in its own browser context."""
+from __future__ import annotations
+
+import time
+
+from playwright.async_api import BrowserContext
+
+from . import safety
+from .browser import wait_settled
+from .context import RunContext
+from .models import Branch, BranchResult, StepResult
+from .step_loop import Carry, run_step
+
+
+async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> BranchResult:
+    t0 = time.time()
+    ctx.emit("branch_start", {"branch": branch.model_dump()}, branch_id=branch.id)
+    result = BranchResult(branch_id=branch.id, goal=branch.goal, status="done")
+    page = await bctx.new_page()
+    try:
+        if safety.is_blocked_domain(ctx, branch.start_url):
+            result.status = "failed"
+            return result
+        try:
+            await page.goto(branch.start_url, timeout=int(ctx.settings.step_timeout_s * 1000))
+        except Exception as e:
+            ctx.emit("error", {"where": "start_url", "error": str(e)[:200]}, branch_id=branch.id)
+        await wait_settled(page)
+
+        carry: Carry | None = None
+        history: list[StepResult] = []
+        failures = 0
+        for i, step in enumerate(branch.steps):
+            if ctx.cancelled:
+                result.status = "stopped"
+                break
+            nxt = branch.steps[i + 1] if i + 1 < len(branch.steps) else None
+            try:
+                res, carry, stop = await run_step(ctx, page, branch, step, nxt, carry, history)
+            except Exception as e:  # never let one step crash the run
+                res = StepResult(step_id=step.id, action=step.action, target=step.target, status="failed",
+                                 note=f"error: {str(e)[:200]}")
+                carry, stop = None, None
+            history.append(res)
+            result.steps.append(res)
+            ctx.emit("step_end", {"result": res.model_dump()}, branch_id=branch.id)
+            ctx.emit_metrics()
+            if res.data and res.data.get("items"):
+                result.extracted.extend(res.data["items"])
+                ctx.emit("partial", {"items": res.data["items"], "goal": branch.goal}, branch_id=branch.id)
+            if stop == "payment":
+                result.status = "stopped"
+                break
+            if stop == "handoff_failed":
+                result.status = "waiting_user"
+                break
+            if res.status == "failed":
+                failures += 1
+                if failures >= 3:
+                    result.status = "partial"
+                    break
+        wants_data = any(s.action == "extract" for s in branch.steps)
+        if result.status == "done" and (failures or (wants_data and not result.extracted)):
+            result.status = "partial" if (result.extracted or failures < len(branch.steps)) else "failed"
+        result.final_url = page.url
+    finally:
+        result.duration_ms = int((time.time() - t0) * 1000)
+        ctx.emit("branch_end", {"result": result.model_dump(exclude={"steps"}),
+                                "steps": len(result.steps)}, branch_id=branch.id)
+        try:
+            await page.close()
+        except Exception:
+            pass
+    return result
