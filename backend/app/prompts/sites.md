@@ -1,6 +1,9 @@
 Always add the parameters that force English and US dollars where the site supports them (shown below), so prices come back in USD no matter where the computer is.
 
-- Flights: Google Flights with a direct query URL (results load directly):
+- Flights: Skyscanner (preferred). Direct search URL, dates as YYMMDD, airport/city codes in lowercase:
+  https://www.skyscanner.net/transport/flights/cai/tyoa/270310/270317/?adultsv2=1&cabinclass=economy&currency=USD&locale=en-GB&market=UK
+  Skyscanner usually shows a "press and hold" bot check: the user solves it once, so ALWAYS also set
+  "fallback_url" to the Google Flights URL for the same search:
   https://www.google.com/travel/flights?q=Flights%20from%20CAI%20to%20TYO%20on%202027-03-10%20through%202027-03-17&hl=en&gl=us&curr=USD
   extract target: "the list of flight results with prices"
 - Hotels: Google Hotels search URL:

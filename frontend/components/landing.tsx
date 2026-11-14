@@ -27,7 +27,7 @@ export function Landing() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-sm">
         <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
-          <div className="text-sm font-medium text-slate-200">How Blink works</div>
+          <div className="label-mono text-slate-300">How Blink works</div>
           <div className="hidden text-xs text-slate-500 sm:block">The LLM thinks once. Jev makes every on-screen decision.</div>
         </div>
         <Architecture />

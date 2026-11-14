@@ -71,7 +71,7 @@ export function Counters({ label, metrics, startedAt, endedAt, accent }: {
   return (
     <div className="flex flex-wrap items-stretch gap-3">
       <div className="min-w-36 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3">
-        <div className={`flex items-center gap-2 text-xs font-medium ${accent}`}>
+        <div className={`label-mono flex items-center gap-2 ${accent}`}>
           {running && <span className="size-1.5 animate-pulse rounded-full bg-current" />}{label}
         </div>
         <div className="mt-1 text-4xl font-semibold tracking-tight tabular-nums text-white">{elapsed.toFixed(1)}<span className="text-xl text-slate-400"> s</span></div>
@@ -90,7 +90,7 @@ function Stat({ k, v, prefix = "", decimals = 0, tone = "text-slate-100" }: {
 }) {
   return (
     <div className="min-w-24 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3">
-      <div className="text-xs text-slate-500">{k}</div>
+      <div className="label-mono text-slate-500">{k}</div>
       <div className={`mt-1 text-2xl font-semibold tabular-nums ${tone}`}>
         {prefix}{v > 0 ? <NumberTicker value={v} startValue={0} decimalPlaces={decimals} className={`tabular-nums ${tone}`} /> : (0).toFixed(decimals)}
       </div>

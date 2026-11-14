@@ -8,9 +8,15 @@ export const metadata: Metadata = {
   description: "A fast web agent: an LLM plans, Jev executes every step from screenshots, in parallel tabs.",
 };
 
+// apply the saved theme before the first paint (no flash); dark by default
+const THEME_SCRIPT = `try{var t=localStorage.getItem('blink-theme');document.documentElement.classList.add(t==='light'?'light':'dark')}catch(e){document.documentElement.classList.add('dark')}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-screen antialiased">
         <Ambient />
         <Nav />

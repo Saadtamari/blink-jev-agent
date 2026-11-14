@@ -72,8 +72,10 @@ async def _settle_state(ctx: RunContext, page: Page, branch: Branch, step: Step,
             safety.payment_stop(ctx, page.url, branch.id, "Jev detected a payment page.")
             return shot, p, "payment"
         if p.state in HANDOFF_STATES and p.state_conf >= 0.5:
+            # with a fallback site we only wait 45 s, then switch sites instead of blocking the run
             ok = await safety.wait_for_user(ctx, page, branch.id, p.state,
-                                            f"Jev detected a {p.state.value.replace('_', ' ')}.")
+                                            f"Jev detected a {p.state.value.replace('_', ' ')}.",
+                                            timeout_s=ctx.settings.fallback_handoff_s if branch.fallback_url else None)
             if not ok:
                 return shot, p, "handoff_failed"
             continue

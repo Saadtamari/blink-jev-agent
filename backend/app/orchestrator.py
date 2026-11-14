@@ -7,7 +7,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 
-from . import fx, planner
+from . import fx, planner, safety
 from .baseline.llm_only_agent import run_baseline
 from .branch_runner import run_branch
 from .browser import BrowserPool
@@ -42,7 +42,9 @@ async def run_blink(ctx: RunContext, pool: BrowserPool, goal: str, use_plan_cach
 
     async def one(branch, s=sem):
         async with s:
-            bctx = await pool.new_context()
+            # reuse cookies saved after the user solved this site's bot check before ("solve once")
+            sp = safety.state_path(branch.start_url)
+            bctx = await pool.new_context(storage_state=str(sp) if sp and sp.exists() else None)
             try:
                 return await run_branch(ctx, bctx, branch)
             finally:

@@ -1,28 +1,24 @@
-/** Page-wide atmosphere behind all content: slow aurora glows + a fading perspective grid + vignette. */
+/** Page-wide atmosphere: a dot matrix, fine vertical lines and one soft glow. Monochrome, works in both themes. */
 export function Ambient() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* aurora glows */}
-      <div className="blink-aurora absolute -left-40 -top-48 size-[42rem] rounded-full bg-emerald-500/20 blur-[120px]" />
-      <div className="blink-aurora-2 absolute -right-32 -top-24 size-[36rem] rounded-full bg-sky-500/20 blur-[120px]" />
-      <div className="blink-aurora absolute bottom-[-18rem] left-1/3 size-[40rem] rounded-full bg-indigo-500/10 blur-[140px]" />
+      {/* one soft glow behind the hero */}
+      <div className="blink-aurora absolute -top-64 left-1/2 size-[46rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[140px]" />
 
-      {/* grid lines, fading out from the top */}
-      <div className="absolute inset-0 opacity-[0.35]
-        [background-image:linear-gradient(to_right,rgb(148_163_184/0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgb(148_163_184/0.08)_1px,transparent_1px)]
-        [background-size:56px_56px]
-        [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,black,transparent)]" />
+      {/* dot matrix, fading out from the top right */}
+      <div className="absolute inset-0
+        [background-image:radial-gradient(var(--dot)_1px,transparent_1.2px)]
+        [background-size:18px_18px]
+        [mask-image:radial-gradient(ellipse_70%_55%_at_85%_10%,black,transparent)]" />
 
-      {/* perspective floor grid at the bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-[45vh] [perspective:600px]">
-        <div className="absolute inset-0 origin-bottom [transform:rotateX(62deg)]
-          [background-image:linear-gradient(to_right,rgb(56_189_248/0.14)_1px,transparent_1px),linear-gradient(to_bottom,rgb(56_189_248/0.14)_1px,transparent_1px)]
-          [background-size:64px_64px]
-          [mask-image:linear-gradient(to_top,black,transparent)]" />
-      </div>
+      {/* fine vertical lines band at the bottom */}
+      <div className="absolute inset-x-0 bottom-0 h-[38vh]
+        [background-image:linear-gradient(to_right,var(--grid-line)_1px,transparent_1px)]
+        [background-size:9px_100%]
+        [mask-image:linear-gradient(to_top,black,transparent)]" />
 
-      {/* vignette */}
-      <div className="absolute inset-0 [background:radial-gradient(ellipse_at_center,transparent_40%,#070b14_100%)]" />
+      {/* page frame lines, like a document grid */}
+      <div className="absolute inset-y-0 left-1/2 w-full max-w-[1600px] -translate-x-1/2 border-x border-[var(--grid-line)]" />
     </div>
   );
 }

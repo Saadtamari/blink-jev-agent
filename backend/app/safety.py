@@ -60,7 +60,8 @@ def is_blocked_domain(ctx: RunContext, url: str) -> bool:
     return any(d == b or d.endswith("." + b) for b in ctx.settings.blocked_domains)
 
 
-async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState, reason: str) -> bool:
+async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState, reason: str,
+                        timeout_s: float | None = None) -> bool:
     """Pause the branch until the user resolves the bot check / login in the browser window.
 
     Resumes when the user clicks Continue in the UI, or when Jev sees the page is no longer
@@ -74,7 +75,7 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
                          "screenshot": shot.path, "message":
                          "Your turn: please complete this check in the browser window, then press Continue."},
              branch_id=branch_id)
-    deadline = time.time() + ctx.settings.handoff_timeout_s
+    deadline = time.time() + (timeout_s or ctx.settings.handoff_timeout_s)
     start_url = page.url
     ticks = 0
     while time.time() < deadline and not ctx.cancelled:
@@ -101,7 +102,26 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
         ctx.emit("handoff_resolved", {"resolved": False, "reason": "timeout or cancelled"}, branch_id=branch_id)
         return False
     ctx.emit("handoff_resolved", {"resolved": True, "url": page.url}, branch_id=branch_id)
+    await save_site_state(page)
     return True
+
+
+# ---- "solve once": remember a site's cookies after the user passes its bot check -----------------
+def state_path(url: str):
+    from .config import DATA_DIR
+    d = domain_of(url).replace(":", "_")
+    return DATA_DIR / "site_state" / f"{d}.json" if d else None
+
+
+async def save_site_state(page) -> None:
+    path = state_path(page.url)
+    if path is None:
+        return
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        await page.context.storage_state(path=str(path))
+    except Exception:
+        pass
 
 
 def payment_stop(ctx: RunContext, page_url: str, branch_id: str, reason: str) -> None:

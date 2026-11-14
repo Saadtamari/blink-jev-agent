@@ -30,11 +30,11 @@ class BrowserPool:
                 args=["--window-size=1400,1000"],
             )
 
-    async def new_context(self) -> BrowserContext:
+    async def new_context(self, storage_state: str | None = None) -> BrowserContext:
         await self.start()
         assert self._browser
         ctx = await self._browser.new_context(viewport=self.viewport, locale="en-US",
-                                              timezone_id="UTC")
+                                              timezone_id="UTC", storage_state=storage_state)
         return ctx
 
     async def close(self) -> None:

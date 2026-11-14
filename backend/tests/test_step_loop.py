@@ -136,3 +136,19 @@ async def test_follows_new_tab_and_goes_back(pool, make_ctx, fixture_url):
     assert res.extracted[0]["route"] == "Tokyo"   # back returned to the results list
     assert res.extracted[1]["route"] == "Rome"    # the new tab was followed
     assert any(e.payload.get("followed_new_tab") for e in ctx.events.events)
+
+
+async def test_bot_check_falls_back_to_second_site(pool, make_ctx, fixture_url):
+    llm = {"extract": {"items": [{"airline": "EgyptAir", "price": 612, "currency": "USD"}]}}
+    ctx = make_ctx(llm_responses=llm)
+    ctx.settings = ctx.settings.model_copy(update={"fallback_handoff_s": 2})
+    b = Branch(id="flights", goal="flights", start_url=f"{fixture_url}/botcheck.html",
+               fallback_url=f"{fixture_url}/results.html?from=Cairo&to=Tokyo", steps=[
+                   Step(id="s1", action="extract", target="the flight results with prices")])
+    bctx = await pool.new_context()
+    res = await run_branch(ctx, bctx, b)
+    await bctx.close()
+    assert any(e.type == "handoff" for e in ctx.events.events)          # asked the user first
+    assert any(e.payload.get("fallback") for e in ctx.events.events)    # then switched sites
+    assert res.extracted and res.extracted[0]["price"] == 612
+    assert res.status == "done"

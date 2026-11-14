@@ -10,6 +10,7 @@ Reply with JSON only, matching this shape:
       "id": "flights",
       "goal": "one sentence sub-goal",
       "start_url": "https://...",
+      "fallback_url": "https://... (optional: a second site for the same search, used if the first one blocks us)",
       "steps": [
         {"id": "s1", "action": "type", "target": "the 'Where to?' search field", "value": "Tokyo", "expect": "the search field shows 'Tokyo'"},
         {"id": "s2", "action": "press", "value": "Enter", "expect": "a list of results is shown"},

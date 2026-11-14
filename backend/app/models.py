@@ -21,6 +21,7 @@ class Branch(BaseModel):
     goal: str
     start_url: str
     steps: list[Step]
+    fallback_url: str | None = None  # used if the start site's bot check isn't solved in time
 
 
 class TaskGraph(BaseModel):

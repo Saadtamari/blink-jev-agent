@@ -30,7 +30,9 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
         carry: Carry | None = None
         history: list[StepResult] = []
         failures = 0
-        for i, step in enumerate(branch.steps):
+        i = 0
+        while i < len(branch.steps):
+            step = branch.steps[i]
             if ctx.cancelled:
                 result.status = "stopped"
                 break
@@ -64,6 +66,17 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
                 result.status = "stopped"
                 break
             if stop == "handoff_failed":
+                if branch.fallback_url:
+                    # nobody solved the bot check in time: switch to the fallback site and redo the branch
+                    fb, branch.fallback_url = branch.fallback_url, None
+                    ctx.emit("log", {"fallback": fb, "reason": "bot check not solved in time"}, branch_id=branch.id)
+                    try:
+                        await page.goto(fb, timeout=int(ctx.settings.step_timeout_s * 1000))
+                    except Exception as e:
+                        ctx.emit("error", {"where": "fallback_url", "error": str(e)[:200]}, branch_id=branch.id)
+                    await wait_settled(page)
+                    carry, i = None, 0
+                    continue
                 result.status = "waiting_user"
                 break
             if res.status == "failed":
@@ -71,6 +84,7 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
                 if failures >= 3:
                     result.status = "partial"
                     break
+            i += 1
         wants_data = any(s.action == "extract" for s in branch.steps)
         if result.status == "done" and (failures or (wants_data and not result.extracted)):
             result.status = "partial" if (result.extracted or failures < len(branch.steps)) else "failed"

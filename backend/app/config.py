@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     max_step_retries: int = 2
     step_timeout_s: float = 30
     handoff_timeout_s: float = 600
+    fallback_handoff_s: float = 45  # wait this long for a bot check when the branch has a fallback site
     screenshot_max_width: int = 1280
     viewport_width: int = 1366
     viewport_height: int = 900

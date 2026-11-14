@@ -17,8 +17,12 @@ import { cn } from "@/lib/utils";
 const EXAMPLES = [
   { label: "Japan trip from Cairo", goal: "I want to go to Japan for 7 days in March from Cairo. How much will it cost?" },
   { label: "Paris weekend from London", goal: "How much does a 5 day trip to Paris from London cost in April?" },
-  { label: "AirPods: Amazon vs eBay", goal: "Compare the price of AirPods Pro on Amazon and eBay." },
+  { label: "Cairo → Istanbul flights", goal: "What is the cheapest round-trip flight from Cairo to Istanbul in May?" },
+  { label: "Dubai long weekend", goal: "How much would 4 days in Dubai from Riyadh cost next month, with flights and a mid-range hotel?" },
+  { label: "Berlin vs Madrid living costs", goal: "Compare the cost of living in Berlin and Madrid." },
+  { label: "Kindle price on Amazon", goal: "What is the cheapest Kindle Paperwhite price on Amazon right now?" },
   { label: "UK visa for Egyptians", goal: "Do Egyptian citizens need a visa for the United Kingdom, and what kind?" },
+  { label: "USD → EGP today", goal: "What is the current USD to EGP exchange rate?" },
 ];
 
 export default function Page() {
@@ -77,17 +81,17 @@ function MissionControl() {
   return (
     <div className="space-y-6">
       {/* ---------- hero + command bar ---------- */}
-      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 shadow-[0_0_80px_-20px_rgba(56,189,248,0.25)] backdrop-blur-sm">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/50 backdrop-blur-sm">
         <FlickeringGrid className="absolute inset-0 [mask-image:radial-gradient(600px_circle_at_top_left,white,transparent)]"
-          squareSize={3} gridGap={7} color="rgb(56, 189, 248)" maxOpacity={0.18} flickerChance={0.08} />
+          squareSize={3} gridGap={7} color="rgb(16, 185, 129)" maxOpacity={0.12} flickerChance={0.08} />
         <div className="relative p-6 sm:p-8">
           {!runId && (
             <div className="mb-6 max-w-3xl">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1 text-xs text-emerald-300">
+              <div className="label-mono mb-4 inline-flex items-center gap-2 text-emerald-300">
                 <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex size-2 rounded-full bg-emerald-400" /></span>
-                Powered by Jev 1.14 · typed decisions with probabilities
+                Jev 1.14 · typed decisions · 4 parallel tabs
               </div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+              <h1 className="text-4xl font-medium tracking-tight text-white sm:text-6xl">
                 The LLM plans. <span className="blink-gradient-text">Jev clicks.</span>
               </h1>
               <div className="mt-3 text-base text-slate-400 sm:text-lg">
@@ -119,7 +123,7 @@ function MissionControl() {
                   ))}
                 </div>
                 <InteractiveHoverButton onClick={start} disabled={starting}
-                  className="border-sky-400/40 bg-slate-900 px-6 py-2.5 text-slate-100 disabled:opacity-60">
+                  className="border-white bg-white px-6 py-2.5 text-slate-950 disabled:opacity-60 [&_.bg-primary]:bg-slate-950 [&_.text-primary-foreground]:text-white">
                   {starting ? "Starting" : mode === "race" ? "Race" : "Go"}
                 </InteractiveHoverButton>
               </div>
@@ -128,7 +132,7 @@ function MissionControl() {
           {error && <div className="mt-2 text-sm text-rose-300">{error}</div>}
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-xs text-slate-500">Try</span>
+            <span className="label-mono text-slate-500">Try</span>
             {EXAMPLES.map((ex) => (
               <button key={ex.label} onClick={() => setGoal(ex.goal)}
                 className={cn("rounded-full border px-3 py-1 text-xs transition",

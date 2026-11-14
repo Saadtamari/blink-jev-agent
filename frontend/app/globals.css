@@ -1,13 +1,73 @@
 @import "tailwindcss";
 
-/* One dark theme. Accent = sky (actions), Jev = emerald (Jev's work), LLM = amber, user = fuchsia. */
+/*
+  Theme: warm neutral monochrome (dark + light), small mono labels, white/black pill actions.
+  Components use the slate scale + white; each theme remaps those variables, so the whole UI flips at once.
+  Accents: emerald = Jev, amber = LLM, sky = actions, fuchsia = user, orange = payment stop.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --color-slate-50: #f7f6f3;
+  --color-slate-100: #ecebe7;
+  --color-slate-200: #d6d3cd;
+  --color-slate-300: #b8b4ac;
+  --color-slate-400: #8f8a82;
+  --color-slate-500: #6b6760;
+  --color-slate-600: #4d4a45;
+  --color-slate-700: #36342f;
+  --color-slate-800: #262422;
+  --color-slate-900: #1c1b19;
+  --color-slate-950: #141312;
+}
+
 :root {
   color-scheme: dark;
-  --background: #070b14;
-  --foreground: #e2e8f0;
-  --primary: #38bdf8;
-  --primary-foreground: #04121c;
-  --border: rgb(148 163 184 / 0.18);
+  --background: #121110;
+  --foreground: #ecebe7;
+  --primary: #ecebe7;
+  --primary-foreground: #121110;
+  --border: rgb(255 255 255 / 0.09);
+  --grid-line: rgb(255 255 255 / 0.05);
+  --dot: rgb(255 255 255 / 0.12);
+}
+
+/* light theme: invert the neutral scale, darken the accent text shades for contrast on white */
+html.light {
+  color-scheme: light;
+  --background: #f4f3ef;
+  --foreground: #1c1b19;
+  --primary: #141312;
+  --primary-foreground: #f7f6f3;
+  --border: rgb(0 0 0 / 0.09);
+  --grid-line: rgb(0 0 0 / 0.06);
+  --dot: rgb(0 0 0 / 0.13);
+  --color-white: #141312;
+  --color-slate-50: #141312;
+  --color-slate-100: #1f1d1b;
+  --color-slate-200: #2e2b28;
+  --color-slate-300: #45413c;
+  --color-slate-400: #5f5a53;
+  --color-slate-500: #7a756d;
+  --color-slate-600: #a8a39b;
+  --color-slate-700: #d6d3cd;
+  --color-slate-800: #e9e7e2;
+  --color-slate-900: #f1f0ec;
+  --color-slate-950: #ffffff;
+  --color-emerald-200: #065f46;
+  --color-emerald-300: #047857;
+  --color-sky-100: #0c4a6e;
+  --color-sky-200: #075985;
+  --color-sky-300: #0369a1;
+  --color-amber-300: #b45309;
+  --color-fuchsia-200: #86198f;
+  --color-fuchsia-300: #a21caf;
+  --color-orange-200: #9a3412;
+  --color-orange-300: #c2410c;
+  --color-rose-300: #be123c;
+  --color-violet-300: #6d28d9;
+  --color-indigo-300: #4338ca;
 }
 
 @theme inline {
@@ -23,29 +83,32 @@ body {
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, Arial, sans-serif;
   font-feature-settings: "cv11", "ss01";
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* small uppercase monospace label, used for section titles and metadata */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 @keyframes blink-drift {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(6%, 4%) scale(1.08); }
 }
-@keyframes blink-drift-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-5%, 6%) scale(1.12); }
-}
-.blink-aurora { animation: blink-drift 18s ease-in-out infinite; }
-.blink-aurora-2 { animation: blink-drift-2 22s ease-in-out infinite; }
+.blink-aurora { animation: blink-drift 22s ease-in-out infinite; }
 
-/* headline gradient for the brand phrase */
 .blink-gradient-text {
-  background: linear-gradient(90deg, #6ee7b7, #38bdf8 60%, #a5b4fc);
+  background: linear-gradient(90deg, #10b981, #0ea5e9 70%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 ::selection {
-  background: rgb(56 189 248 / 0.3);
+  background: rgb(16 185 129 / 0.3);
 }
 
 @media (prefers-reduced-motion: reduce) {
