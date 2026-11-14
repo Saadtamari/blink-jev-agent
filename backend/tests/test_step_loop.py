@@ -116,3 +116,23 @@ async def test_recovery_retarget(pool, make_ctx, fixture_url):
     assert res.steps[0].status == "recovered"
     assert res.steps[0].used == "llm_recovery"
     assert "recovery" in ctx.llm.calls
+
+
+async def test_follows_new_tab_and_goes_back(pool, make_ctx, fixture_url):
+    llm = {"extract": lambda user: {"items": [{"route": "Rome" if "Rome" in user else "Tokyo", "price": 612}]}}
+    ctx = make_ctx(llm_responses=llm)
+    b = Branch(id="multi", goal="open deals", start_url=f"{fixture_url}/results.html?from=Cairo&to=Tokyo", steps=[
+        Step(id="s1", action="goto", value=f"{fixture_url}/index.html"),
+        Step(id="s2", action="back"),
+        Step(id="s3", action="extract", target="the flight results with prices"),
+        Step(id="s4", action="goto", value=f"{fixture_url}/index.html"),
+        Step(id="s5", action="click", target="the 'Rome deals' link"),
+        Step(id="s6", action="extract", target="the flight results with prices"),
+    ])
+    bctx = await pool.new_context()
+    res = await run_branch(ctx, bctx, b)
+    await bctx.close()
+    assert [s.status for s in res.steps] == ["ok"] * 6, [(s.status, s.note) for s in res.steps]
+    assert res.extracted[0]["route"] == "Tokyo"   # back returned to the results list
+    assert res.extracted[1]["route"] == "Rome"    # the new tab was followed
+    assert any(e.payload.get("followed_new_tab") for e in ctx.events.events)

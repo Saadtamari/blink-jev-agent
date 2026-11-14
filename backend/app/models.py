@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class Step(BaseModel):
     id: str
-    action: Literal["goto", "click", "type", "select", "press", "scroll", "wait", "extract"]
+    action: Literal["goto", "click", "type", "select", "press", "scroll", "wait", "extract", "back"]
     target: str | None = None  # what a human sees on screen: "departure city field"
     value: str | None = None  # text to type / option / key / url
     expect: str | None = None  # expected state after the step

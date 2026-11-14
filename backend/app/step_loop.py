@@ -203,6 +203,14 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
             return done("failed", note=f"goto failed: {str(e)[:120]}"), None, None
         await wait_settled(page)
         return done("ok"), None, None
+    if step.action == "back":
+        # return to the previous page (e.g. the results list) to open the next item
+        try:
+            await page.go_back(timeout=int(s.step_timeout_s * 1000))
+        except Exception as e:
+            return done("failed", note=f"back failed: {str(e)[:120]}"), None, None
+        await wait_settled(page)
+        return done("ok"), None, None
     if step.action == "wait":
         try:
             secs = float(step.value or 1.5)

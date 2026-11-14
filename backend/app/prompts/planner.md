@@ -26,7 +26,11 @@ home_currency: the ISO code of the user's own currency when it is clear (travell
 The agent fetches exchange rates by itself, so do NOT add a currency branch.
 For trip-cost goals use these 4 branches: flights, hotels, daily living costs, visa requirements.
 
-Actions: goto (value = url), click (target), type (target + value), select (target + value), press (value = key, e.g. Enter), scroll (value = up/down), wait (value = seconds), extract (target = region to read + extract_schema).
+Actions: goto (value = url), click (target), type (target + value), select (target + value), press (value = key, e.g. Enter), scroll (value = up/down), wait (value = seconds), extract (target = region to read + extract_schema), back (return to the previous page).
+
+Opening several items on one page is allowed when the list doesn't show what you need: click item 1 -> extract -> back ->
+click item 2 -> extract -> back ... (max 3 items). Links that open a new tab are followed automatically.
+Prefer reading the list directly when it already shows the needed data.
 
 Rules for speed:
 - Use 2 to 4 branches. Branches must not depend on each other.

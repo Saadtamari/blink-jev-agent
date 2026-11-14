@@ -77,7 +77,7 @@ function MissionControl() {
   return (
     <div className="space-y-6">
       {/* ---------- hero + command bar ---------- */}
-      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 shadow-[0_0_80px_-20px_rgba(56,189,248,0.25)] backdrop-blur-sm">
         <FlickeringGrid className="absolute inset-0 [mask-image:radial-gradient(600px_circle_at_top_left,white,transparent)]"
           squareSize={3} gridGap={7} color="rgb(56, 189, 248)" maxOpacity={0.18} flickerChance={0.08} />
         <div className="relative p-6 sm:p-8">
@@ -88,7 +88,7 @@ function MissionControl() {
                 Powered by Jev 1.14 · typed decisions with probabilities
               </div>
               <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-5xl">
-                The LLM plans. <span className="text-emerald-300">Jev clicks.</span>
+                The LLM plans. <span className="blink-gradient-text">Jev clicks.</span>
               </h1>
               <div className="mt-3 text-base text-slate-400 sm:text-lg">
                 Ask about

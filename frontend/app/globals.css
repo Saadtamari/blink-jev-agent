@@ -25,6 +25,25 @@ body {
   font-feature-settings: "cv11", "ss01";
 }
 
+@keyframes blink-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6%, 4%) scale(1.08); }
+}
+@keyframes blink-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5%, 6%) scale(1.12); }
+}
+.blink-aurora { animation: blink-drift 18s ease-in-out infinite; }
+.blink-aurora-2 { animation: blink-drift-2 22s ease-in-out infinite; }
+
+/* headline gradient for the brand phrase */
+.blink-gradient-text {
+  background: linear-gradient(90deg, #6ee7b7, #38bdf8 60%, #a5b4fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 ::selection {
   background: rgb(56 189 248 / 0.3);
 }

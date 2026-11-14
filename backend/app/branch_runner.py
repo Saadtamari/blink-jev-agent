@@ -41,6 +41,18 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
                 res = StepResult(step_id=step.id, action=step.action, target=step.target, status="failed",
                                  note=f"error: {str(e)[:200]}")
                 carry, stop = None, None
+            # a click opened a new tab (target=_blank, popups): follow it, like a person would
+            open_pages = [p for p in bctx.pages if not p.is_closed()]
+            if open_pages and open_pages[-1] is not page:
+                page = open_pages[-1]
+                try:
+                    await page.wait_for_load_state("domcontentloaded", timeout=15000)
+                except Exception:
+                    pass
+                carry = None
+                ctx.emit("log", {"followed_new_tab": page.url}, branch_id=branch.id)
+            elif page.is_closed() and open_pages:
+                page, carry = open_pages[-1], None
             history.append(res)
             result.steps.append(res)
             ctx.emit("step_end", {"result": res.model_dump()}, branch_id=branch.id)
