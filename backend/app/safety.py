@@ -86,7 +86,11 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
         ticks += 1
         try:
             # cheap check every tick when the URL changed, otherwise every ~6 s
-            if page.url != start_url or ticks % 2 == 0:
+            if ctx.agent != "blink":
+                # the baseline has no Jev: resume only when the URL changes
+                if page.url != start_url:
+                    break
+            elif page.url != start_url or ticks % 2 == 0:
                 shot = await screenshot(page)
                 p = await ctx.jev.perceive(shot, context="Checking whether the user finished a check.")
                 if p.state not in HANDOFF_STATES:

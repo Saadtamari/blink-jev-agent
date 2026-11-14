@@ -5,7 +5,6 @@ import pytest
 from app.branch_runner import run_branch
 from app.models import Branch, Step
 
-pytestmark = pytest.mark.asyncio
 
 
 def flight_branch(base: str) -> Branch:
