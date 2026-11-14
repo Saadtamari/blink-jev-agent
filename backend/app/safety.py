@@ -75,6 +75,11 @@ async def wait_for_user(ctx: RunContext, page, branch_id: str, state: PageState,
                          "screenshot": shot.path, "message":
                          "Your turn: please complete this check in the browser window, then press Continue."},
              branch_id=branch_id)
+    notify_user(ctx, branch_id, "login" if state.value == "login" else "verify",
+                f"{domain_of(page.url) or 'This site'} needs you",
+                "Sign in in the browser window, then press Continue." if state.value == "login" else
+                "Complete the human check (for example press and hold) in the browser window, then press Continue.",
+                page.url, blocking=True)
     deadline = time.time() + (timeout_s or ctx.settings.handoff_timeout_s)
     start_url = page.url
     ticks = 0
@@ -124,7 +129,18 @@ async def save_site_state(page) -> None:
         pass
 
 
+def notify_user(ctx: RunContext, branch_id: str, kind: str, title: str, message: str, url: str | None,
+                blocking: bool = False) -> None:
+    """A lasting 'needs you' notice in the UI: something only the user can (or should) do."""
+    title, message = title.replace("www.", ""), message.replace("www.", "")
+    ctx.emit("notice", {"kind": kind, "title": title, "message": message, "url": url, "blocking": blocking},
+             branch_id=branch_id)
+
+
 def payment_stop(ctx: RunContext, page_url: str, branch_id: str, reason: str) -> None:
     ctx.emit("handoff", {"kind": "payment", "reason": reason, "url": page_url, "message":
                          "Blink stopped before payment. It never pays: open this page to finish it yourself."},
              branch_id=branch_id)
+    notify_user(ctx, branch_id, "payment", "Finish the payment yourself",
+                "Blink reached a payment step and stopped. It never pays or types card details. "
+                "Open the page to review and complete it.", page_url)

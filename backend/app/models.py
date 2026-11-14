@@ -133,7 +133,7 @@ class FinalAnswer(BaseModel):
 
 
 EventType = Literal[
-    "run_start", "plan", "plan_add", "branch_start", "step_start", "jev_call", "llm_call", "action",
+    "run_start", "plan", "plan_add", "notice", "branch_start", "step_start", "jev_call", "llm_call", "action",
     "step_end", "handoff", "handoff_resolved", "branch_end", "partial", "final",
     "metrics", "error", "screenshot", "run_end", "log",
 ]

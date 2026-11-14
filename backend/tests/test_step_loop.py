@@ -68,6 +68,7 @@ async def test_payment_page_hard_stop(pool, make_ctx, fixture_url):
     assert res.status == "stopped"
     assert res.steps[0].status == "blocked"
     assert any(e.type == "handoff" and e.payload.get("kind") == "payment" for e in ctx.events.events)
+    assert any(e.type == "notice" and e.payload["kind"] == "payment" for e in ctx.events.events)
 
 
 async def test_payment_button_blocked_even_on_normal_page(pool, make_ctx, fixture_url):
@@ -150,6 +151,8 @@ async def test_bot_check_switches_site_immediately(pool, make_ctx, fixture_url):
     switches = [e.payload for e in ctx.events.events if e.payload.get("fallback")]
     assert len(switches) == 2                                            # skipped two bot-checked sites
     assert not any(e.type == "handoff" for e in ctx.events.events)      # never waited for the user
+    notices = [e.payload for e in ctx.events.events if e.type == "notice"]
+    assert notices and notices[0]["kind"] == "verify" and not notices[0]["blocking"]  # but told the user
     assert res.extracted and res.extracted[0]["price"] == 612
     assert res.status == "done"
 

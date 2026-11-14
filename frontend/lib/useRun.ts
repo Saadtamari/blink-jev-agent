@@ -23,6 +23,11 @@ export type BranchState = {
   endedAt?: number;
 };
 
+export type Notice = {
+  id: string; kind: string; title: string; message: string; url?: string | null;
+  blocking: boolean; branch: string; ts: number; resolved?: boolean;
+};
+
 export type AgentState = {
   branches: Record<string, BranchState>;
   order: string[];
@@ -32,6 +37,7 @@ export type AgentState = {
   startedAt?: number;
   endedAt?: number;
   errors: string[];
+  notices: Notice[];
   calls: { kind: "jev" | "llm"; purpose: string; ms: number; cost: number; ts: number }[];
 };
 
@@ -46,7 +52,7 @@ export type RunState = {
   eventCount: number;
 };
 
-const emptyAgent = (): AgentState => ({ branches: {}, order: [], errors: [], calls: [] });
+const emptyAgent = (): AgentState => ({ branches: {}, order: [], errors: [], notices: [], calls: [] });
 const initial: RunState = { status: "idle", agents: { blink: emptyAgent(), baseline: emptyAgent() }, eventCount: 0 };
 
 function ensureBranch(a: AgentState, id: string, goal = ""): BranchState {
@@ -139,7 +145,16 @@ function apply(state: RunState, e: BlinkEvent): RunState {
         if (p.kind !== "payment") branch.status = "waiting_user";
       }
       break;
+    case "notice": {
+      const id = `${p.kind}|${p.url || ""}|${bid || ""}`;
+      if (!a.notices.some((n) => n.id === id)) {
+        a.notices = [...a.notices, { id, kind: p.kind, title: p.title, message: p.message, url: p.url,
+          blocking: !!p.blocking, branch: bid || "", ts: e.ts }];
+      }
+      break;
+    }
     case "handoff_resolved":
+      if (bid && p.resolved) a.notices = a.notices.map((n) => (n.branch === bid && n.blocking ? { ...n, resolved: true } : n));
       if (branch) {
         branch.handoff = undefined;
         branch.status = "running";

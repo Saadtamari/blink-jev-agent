@@ -8,6 +8,7 @@ import { AgentState, useRun } from "@/lib/useRun";
 import { BranchTile, Counters, FinalAnswerView, StepTimeline } from "@/components/blink";
 import { ActivityFeed } from "@/components/activity-feed";
 import { Landing } from "@/components/landing";
+import { NeedsYou } from "@/components/needs-you";
 import { BorderBeam } from "@/components/ui/border-beam";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { FlipWords } from "@/components/ui/flip-words";
@@ -192,6 +193,7 @@ function AgentView({ agent, label, accent, viewport, onContinue, compact, withFe
   const main = (
     <section className="min-w-0 space-y-4">
       <Counters label={label} metrics={agent.metrics} startedAt={agent.startedAt} endedAt={agent.endedAt} accent={accent} />
+      <NeedsYou notices={agent.notices} />
       {agent.plan && (
         <div className="text-xs text-slate-500">
           {agent.plan.graph.branches.length} parallel branches{" "}

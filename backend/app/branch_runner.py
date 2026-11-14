@@ -28,6 +28,7 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
         await wait_settled(page)
 
         carry: Carry | None = None
+        current_site = branch.start_url
         history: list[StepResult] = []
         failures = 0
         i = 0
@@ -69,6 +70,12 @@ async def run_branch(ctx: RunContext, bctx: BrowserContext, branch: Branch) -> B
                 # this site asked for human verification: go straight to the next website and redo the branch
                 blocked_url = page.url
                 fb = branch.fallback_urls.pop(0)
+                site = safety.domain_of(current_site) or "This site"
+                safety.notify_user(ctx, branch.id, "verify", f"{site} wants a human check",
+                                   f"{site} asks you to verify you are human (for example press and hold). "
+                                   f"Blink switched to {safety.domain_of(fb)} so the run keeps going. "
+                                   f"Open {site} yourself if you also want its results.", current_site)
+                current_site = fb
                 ctx.emit("log", {"fallback": fb, "from": blocked_url,
                                  "reason": "bot check: switching to another website"}, branch_id=branch.id)
                 try:
