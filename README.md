@@ -11,6 +11,20 @@ Blink is a web agent built for the Jevathon. It does multi-site research tasks m
 > Demo goal: *"I want to go to Japan for 7 days in March from Cairo. How much will it cost?"*
 > → 4 parallel tabs (flights, hotels, visa, daily costs) → cost table (low / mid / high) with a source for every number.
 
+## Measured results (live websites, real Jev 1.14 via OpenRouter)
+
+Japan trip goal, race mode, same machine, same models:
+
+| | Blink | LLM-only agent |
+|---|---|---|
+| Time | **21.3 s** | 122.8 s |
+| Cost | **$0.0118** | $0.0587 |
+| Model calls | 6 Jev + 7 LLM | 46 LLM |
+| Answer | flights, hotels, daily costs, visa, totals in USD and EGP | hotels missing |
+
+Jev measurements (`scripts/jev_box_probe.py`): **8/8** Box answers landed on the right element, **~420 ms** and
+**~$0.00015** per call (state + visibility + box + verify questions answered together in one call).
+
 ## Architecture
 
 ```
@@ -37,6 +51,20 @@ Blink is a web agent built for the Jevathon. It does multi-site research tasks m
 6. **Popup auto-dismiss:** cookie banners are closed in one step, choosing "reject" first.
 7. **Crop-then-read:** the LLM reads a small crop of the page, not the whole screenshot.
 8. **Plan cache, streaming partial results, resized JPEG screenshots.**
+9. **Fast planner model:** Gemini 2.5 Flash plans in ~3.5 s versus ~12.5 s for Claude Sonnet 4.5 (`scripts/model_race.py`).
+
+### Correct numbers, not guessed ones
+- **Automatic currency tabs:** sites often show prices in the visitor's local currency (Google showed Jordanian dinars).
+  When a branch returns a new currency, Blink opens an exchange-rate tab on Wise (executed by Jev, in parallel) and
+  converts in code. Your home currency (for example EGP for a trip from Cairo) is fetched up front.
+  Rates are cached for 6 hours.
+- **Totals are computed in code**, not by the LLM, and the totals sentence in the summary is written by code too.
+- The LLM is told which rates are missing and is never allowed to relabel a currency or estimate a price.
+
+### What Jev's confidence means (measured)
+Jev's Box confidence ranged from 0.41 to 0.94 on boxes that were all correct, so it reflects how tight the box is, not
+whether it's right. Blink uses Jev's companion "is the target visible?" probability as the main signal and Box
+confidence only as a sanity check.
 
 ### Confidence routing
 | Jev confidence | What Blink does |

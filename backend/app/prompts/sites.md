@@ -8,10 +8,9 @@ Always add the parameters that force English and US dollars where the site suppo
   extract target: "the list of hotels with nightly prices"
 - Visa rules: Wikipedia "Visa requirements for <nationality> citizens", e.g.
   https://en.wikipedia.org/wiki/Visa_requirements_for_Egyptian_citizens
-  The country table is long: add a "type" or "scroll" is NOT needed; instead extract target: "the table row for <country>".
-  Better: use the in-page search URL form https://en.wikipedia.org/wiki/Visa_requirements_for_Egyptian_citizens#<Country> is not reliable, so just extract.
+  One extract step is enough (the extractor also reads the full page text): extract target "the table row for <country>".
 - Daily living / travel costs: Numbeo (USD): https://www.numbeo.com/cost-of-living/in/Tokyo?displayCurrency=USD
   extract target: "the table of prices for restaurants, transport and other items"
-- Currency rates: https://www.x-rates.com/calculator/?from=USD&to=EGP&amount=1  (extract target: "the conversion result")
+- Currency rates: https://wise.com/us/currency-converter/usd-to-egp-rate?amount=1  (lowercase codes; extract target: "the conversion result")
 - Product prices: Amazon search https://www.amazon.com/s?k=<query>, eBay https://www.ebay.com/sch/i.html?_nkw=<query>
 - General facts: Wikipedia https://en.wikipedia.org/wiki/<Title>

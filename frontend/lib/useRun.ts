@@ -27,7 +27,7 @@ export type AgentState = {
   order: string[];
   metrics?: Metrics;
   final?: { answer: FinalAnswer | null; metrics: Metrics; error?: string };
-  plan?: { graph: { branches: { id: string; goal: string; start_url: string; steps: Step[] }[] }; plan_ms: number };
+  plan?: { graph: { branches: { id: string; goal: string; start_url: string; steps: Step[] }[]; cached?: boolean }; plan_ms: number };
   startedAt?: number;
   endedAt?: number;
   errors: string[];

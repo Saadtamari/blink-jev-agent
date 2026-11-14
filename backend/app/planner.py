@@ -50,6 +50,7 @@ async def plan(ctx: RunContext, goal: str, use_cache: bool = True) -> TaskGraph:
     k = _key(goal)
     if use_cache and k in cache:
         g = TaskGraph.model_validate(cache[k])
+        g.cached = True
         ctx.emit("log", {"plan_cache": "hit"})
         return g
     system = (load_prompt("planner")

@@ -224,6 +224,21 @@ async def run_step(ctx: RunContext, page: Page, branch: Branch, step: Step, next
     if step.action == "extract":
         try:
             data = await extractor.extract(ctx, page, shot, step, p, branch.goal)
+            if not data.get("items"):
+                # nothing found: error page -> reload once; otherwise the data may be below the fold -> scroll once
+                notes = str(data.get("notes", "")).lower()
+                if p.state == PageState.ERROR or "error" in notes:
+                    how = "reload"
+                    await page.reload(timeout=int(s.step_timeout_s * 1000))
+                    await wait_settled(page)
+                else:
+                    how = "scroll"
+                    await scroll(page, "down", 800)
+                ctx.emit("log", {"extract_retry": how, "reason": notes[:200]}, branch_id=branch.id)
+                shot, p, stop = await _settle_state(ctx, page, branch, step, None)
+                if stop:
+                    return done("blocked" if stop == "payment" else "handoff"), None, stop
+                data = await extractor.extract(ctx, page, shot, step, p, branch.goal)
         except Exception as e:
             return done("failed", note=f"extract failed: {str(e)[:160]}"), None, None
         return done("ok", used="jev" if data.get("region") == "jev_crop" else "none", data=data,

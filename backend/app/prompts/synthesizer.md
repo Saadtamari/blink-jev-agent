@@ -7,6 +7,7 @@ Reply with JSON only:
     {"category": "Flights (round trip)", "low": 612, "mid": 680, "high": 745, "currency": "USD",
      "source_url": "https://...", "note": "cheapest 1-stop options found"}
   ],
+  "additive": true,
   "notes": ["visa requirement and timing", "assumptions made"],
   "sources": ["https://..."]
 }
@@ -28,6 +29,9 @@ Rules:
 - If a category has no data, keep the row with null values and note "not found".
 - Visa information goes in notes (and a row only if a fee was actually found).
 - Keep every source URL that a number came from.
-- For goals that are not trips, use whatever rows answer the question (e.g. one row per store).
+- For goals that are not trips, use whatever rows answer the question (e.g. one row per store, one row per city).
+- Keep the table compact: at most 10 rows. Keep notes short. Comparisons: one row per thing compared, plus key items in notes.
+- Set "additive": true only when the rows are parts of one budget that should be added up (a trip). For comparisons,
+  price lookups or facts set "additive": false (the code then shows no total).
 - The summary must match the table. NEVER write a total, a sum or a price range for the whole thing in the summary:
   the code appends the exact totals sentence itself. Describe what is included and the key facts (e.g. visa) instead.

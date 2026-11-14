@@ -28,6 +28,7 @@ class TaskGraph(BaseModel):
     branches: list[Branch]
     synthesis_instructions: str = ""
     home_currency: str | None = None  # e.g. "EGP" for a traveller from Cairo: totals are also shown in it
+    cached: bool = False  # True when the plan came from the plan cache (shown in the UI)
 
 
 class PageState(str, Enum):
@@ -117,6 +118,7 @@ class FinalAnswer(BaseModel):
     summary: str
     table: list[CostRow] = Field(default_factory=list)
     totals: dict[str, Any] = Field(default_factory=dict)
+    additive: bool = True  # rows are parts of one budget (trip) -> the code adds them up
     notes: list[str] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list)
 

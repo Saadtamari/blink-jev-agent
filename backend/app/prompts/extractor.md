@@ -5,6 +5,8 @@ Reply with JSON only:
 
 Rules:
 - Only report values you can actually see in the image or the text. Never invent numbers.
+- Only items that really match what was asked (e.g. for "AirPods Pro" skip cases, generic earbuds and accessories;
+  sponsored look-alikes are not the product). Use the full page text to find prices that are not in the image.
 - Prices: give the number without symbols in "price" and the ISO currency code in "currency" (USD, EUR, EGP, JPY...).
 - If a value is per night / per person / per day, say so in a "unit" field.
 - Return up to 5 items for offers (best / cheapest first). For price tables (cost of living etc.) return up to 15 rows,

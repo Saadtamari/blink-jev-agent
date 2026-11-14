@@ -18,7 +18,8 @@ def compute_totals(ans: FinalAnswer, rates: dict[str, Any] | None) -> None:
         elif len(vals) == 2 and r.mid is None:
             r.low, r.high = vals
     rows = [r for r in ans.table if any(v is not None for v in (r.low, r.mid, r.high))]
-    if not rows:
+    if not rows or not ans.additive:
+        ans.totals = {}
         return
     currencies = {r.currency.upper() for r in rows}
     if len(currencies) != 1:
@@ -64,7 +65,7 @@ async def synthesize(ctx: RunContext, goal: str, results: list[BranchResult], in
             f"{json.dumps(payload, ensure_ascii=False)[:14000]}")
     try:
         ans = await ctx.llm.chat_json(model=ctx.settings.llm_planner_model, system=load_prompt("synthesizer"),
-                                      user=user, schema=FinalAnswer, purpose="synthesize", max_tokens=2000)
+                                      user=user, schema=FinalAnswer, purpose="synthesize", max_tokens=6000)
     except Exception as e:
         ans = FinalAnswer(summary=f"Could not write the final answer ({str(e)[:120]}). Raw results are below.",
                           notes=[json.dumps(payload, ensure_ascii=False)[:2000]])

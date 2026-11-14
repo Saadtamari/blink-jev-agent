@@ -6,6 +6,7 @@ It gets the same site hints as Blink's planner so the comparison is fair.
 """
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import time
 from typing import Any, Literal
@@ -48,7 +49,18 @@ async def run_baseline(ctx: RunContext, pool: BrowserPool, goal: str, max_steps:
             if ctx.cancelled:
                 status = "stopped"
                 break
-            shot = await screenshot(page, ctx.dir / "shots", f"baseline_{i}")
+            try:
+                shot = await screenshot(page, ctx.dir / "shots", f"baseline_{i}")
+            except Exception:
+                # the page was mid-navigation (or a popup tab took over): give it a moment, then retry once
+                await asyncio.sleep(1.5)
+                if page.is_closed():
+                    page = await bctx.new_page()
+                try:
+                    shot = await screenshot(page, ctx.dir / "shots", f"baseline_{i}")
+                except Exception as e:
+                    history.append(f"screenshot failed: {str(e)[:80]}")
+                    continue
             ctx.emit("screenshot", {"path": shot.path, "url": shot.url, "step_id": f"b{i}", "tag": "before"},
                      branch_id="baseline")
             user = (f"Goal: {goal}\nCurrent URL: {page.url}\nStep {i + 1} of max {max_steps}.\n"

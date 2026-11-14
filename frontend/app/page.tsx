@@ -144,14 +144,15 @@ function AgentView({ agent, label, accent, viewport, onContinue, compact }: {
   onContinue: (branchId: string) => void; compact?: boolean;
 }) {
   const branches = agent.order.map((id) => agent.branches[id]);
-  const cols = compact ? "grid-cols-1 sm:grid-cols-2" : branches.length > 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2";
+  const cols = compact ? "grid-cols-[minmax(0,1fr)] sm:grid-cols-[repeat(2,minmax(0,1fr))]" : "grid-cols-[minmax(0,1fr)] md:grid-cols-[repeat(2,minmax(0,1fr))]";
   const partials = useMemo(() => branches.flatMap((b) => b.extracted.map((x) => ({ b: b.id, x }))), [branches]);
   return (
-    <section className="space-y-4">
+    <section className="min-w-0 space-y-4">
       <Counters label={label} metrics={agent.metrics} startedAt={agent.startedAt} endedAt={agent.endedAt} accent={accent} />
       {agent.plan && (
         <div className="text-xs text-slate-400">
-          Plan: {agent.plan.graph.branches.length} parallel branches in {(agent.plan.plan_ms / 1000).toFixed(1)}s —{" "}
+          Plan: {agent.plan.graph.branches.length} parallel branches{" "}
+          {agent.plan.graph.cached ? "(reused from the plan cache)" : `in ${(agent.plan.plan_ms / 1000).toFixed(1)}s`} —{" "}
           {agent.plan.graph.branches.map((b) => b.id).join(" · ")}
         </div>
       )}
@@ -169,7 +170,7 @@ function AgentView({ agent, label, accent, viewport, onContinue, compact }: {
       )}
       <FinalAnswerView final={agent.final} title={`${label} answer`} />
       {!compact && (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[repeat(2,minmax(0,1fr))]">
           {branches.map((b) => <StepTimeline key={b.id} b={b} />)}
         </div>
       )}
@@ -200,7 +201,7 @@ function RaceView({ blink, base, viewport, onContinue }: {
           cost ${(blink.metrics?.total_cost ?? 0).toFixed(4)} vs ${(base.metrics?.total_cost ?? 0).toFixed(4)}
         </div>
       )}
-      <div className="grid gap-6 xl:grid-cols-[3fr_2fr]">
+      <div className="grid gap-6 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <AgentView agent={blink} label="Blink (LLM plans, Jev clicks)" accent="text-sky-300" viewport={viewport}
           onContinue={(b) => onContinue("blink", b)} compact />
         <AgentView agent={base} label="LLM-only agent" accent="text-amber-300" viewport={viewport}
