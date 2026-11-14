@@ -27,17 +27,17 @@ export default function Runs() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-white">Runs</h1>
+      <h1 className="text-3xl font-semibold tracking-tight text-white">Runs</h1>
       <p className="text-sm text-slate-400">Open a past run, replay it with its real timing (demo backup), or save it as the demo run.</p>
       {msg && <div className="text-sm text-emerald-300">{msg}</div>}
-      <div className="overflow-hidden rounded-xl border border-slate-800">
+      <div className="overflow-hidden rounded-xl border border-white/10">
         <table className="w-full text-sm">
-          <thead className="bg-slate-900 text-left text-xs uppercase text-slate-400">
+          <thead className="bg-slate-950/80 text-left text-xs uppercase text-slate-400">
             <tr><th className="px-3 py-2">When</th><th>Goal</th><th>Mode</th><th>Status</th><th className="px-3 text-right">Actions</th></tr>
           </thead>
           <tbody>
             {runs.map((r) => (
-              <tr key={r.run_id} className="border-t border-slate-800">
+              <tr key={r.run_id} className="border-t border-white/10">
                 <td className="px-3 py-2 text-slate-400">{new Date(r.started * 1000).toLocaleString()}</td>
                 <td className="max-w-md truncate text-slate-100">{r.goal}</td>
                 <td className="text-slate-300">{r.mode}</td>

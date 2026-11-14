@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { BranchState, StepRow } from "@/lib/useRun";
 import { FinalAnswer, Metrics, fileUrl, money } from "@/lib/api";
+import { BorderBeam } from "@/components/ui/border-beam";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 export const PATH_STYLE: Record<string, { label: string; cls: string; stroke: string }> = {
   jev: { label: "Jev", cls: "bg-emerald-500/15 text-emerald-300 ring-emerald-400/40", stroke: "#34d399" },
@@ -67,25 +69,31 @@ export function Counters({ label, metrics, startedAt, endedAt, accent }: {
   const now = useTicker(running);
   const elapsed = startedAt ? ((endedAt || now) - startedAt) : 0;
   return (
-    <div className="flex flex-wrap items-end gap-6">
-      <div>
-        <div className={`text-xs uppercase tracking-wider ${accent}`}>{label}</div>
-        <div className="text-4xl font-bold tabular-nums text-white">{elapsed.toFixed(1)}s</div>
+    <div className="flex flex-wrap items-stretch gap-3">
+      <div className="min-w-36 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3">
+        <div className={`flex items-center gap-2 text-xs font-medium ${accent}`}>
+          {running && <span className="size-1.5 animate-pulse rounded-full bg-current" />}{label}
+        </div>
+        <div className="mt-1 text-4xl font-semibold tracking-tight tabular-nums text-white">{elapsed.toFixed(1)}<span className="text-xl text-slate-400"> s</span></div>
       </div>
-      <Stat k="Cost" v={`$${(metrics?.total_cost ?? 0).toFixed(4)}`} />
-      <Stat k="Jev calls" v={metrics?.jev_calls ?? 0} />
-      <Stat k="LLM calls" v={metrics?.llm_calls ?? 0} />
+      <Stat k="Cost" prefix="$" v={metrics?.total_cost ?? 0} decimals={4} />
+      <Stat k="Jev calls" v={metrics?.jev_calls ?? 0} tone="text-emerald-300" />
+      <Stat k="LLM calls" v={metrics?.llm_calls ?? 0} tone="text-amber-300" />
       <Stat k="Steps" v={metrics?.steps ?? 0} />
-      {metrics?.cache_hits ? <Stat k="Memory hits" v={metrics.cache_hits} /> : null}
+      {metrics?.cache_hits ? <Stat k="Memory hits" v={metrics.cache_hits} tone="text-violet-300" /> : null}
     </div>
   );
 }
 
-function Stat({ k, v }: { k: string; v: string | number }) {
+function Stat({ k, v, prefix = "", decimals = 0, tone = "text-slate-100" }: {
+  k: string; v: number; prefix?: string; decimals?: number; tone?: string;
+}) {
   return (
-    <div>
-      <div className="text-xs text-slate-400">{k}</div>
-      <div className="text-2xl font-semibold tabular-nums text-slate-100">{v}</div>
+    <div className="min-w-24 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3">
+      <div className="text-xs text-slate-500">{k}</div>
+      <div className={`mt-1 text-2xl font-semibold tabular-nums ${tone}`}>
+        {prefix}{v > 0 ? <NumberTicker value={v} startValue={0} decimalPlaces={decimals} className={`tabular-nums ${tone}`} /> : (0).toFixed(decimals)}
+      </div>
     </div>
   );
 }
@@ -97,8 +105,9 @@ export function BranchTile({ b, viewport, onContinue, compact }: {
   const box = b.lastBox && (!b.lastBox.shot || b.lastBox.shot === b.lastShot) ? b.lastBox : undefined;
   const st = PATH_STYLE[box?.used || "jev"] || PATH_STYLE.jev;
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/80">
-      <div className="flex items-center justify-between gap-2 border-b border-slate-700/70 px-3 py-2">
+    <div className="relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/70">
+      {b.status === "running" && <BorderBeam size={90} duration={5} colorFrom="#34d399" colorTo="#38bdf8" />}
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-white">{b.id}</div>
           {!compact && <div className="truncate text-xs text-slate-400">{b.goal}</div>}
@@ -159,7 +168,7 @@ export function BranchTile({ b, viewport, onContinue, compact }: {
 export function StepTimeline({ b }: { b: BranchState }) {
   if (!b.steps.length) return null;
   return (
-    <div className="rounded-xl border border-slate-700/70 bg-slate-900/60 p-3">
+    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
       <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{b.id}</div>
       <div className="space-y-1">
         {b.steps.map((s: StepRow, i: number) => (
@@ -186,7 +195,7 @@ export function FinalAnswerView({ final, title }: { final?: { answer: FinalAnswe
   const t = a.totals as Record<string, any>;
   const cur = (t?.currency as string) || a.table[0]?.currency || "USD";
   return (
-    <div className="rounded-xl border border-emerald-500/30 bg-slate-900/80 p-5">
+    <div className="rounded-xl border border-emerald-400/20 bg-slate-950/70 p-5">
       <div className="text-xs font-semibold uppercase tracking-wider text-emerald-300">{title}</div>
       <p className="mt-2 text-lg leading-relaxed text-white">{a.summary}</p>
       {a.table.length > 0 && (
