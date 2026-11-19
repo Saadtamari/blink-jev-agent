@@ -149,7 +149,7 @@ cd backend
 The agents run one after another so they never compete for bandwidth. Blink plans fresh every time (plan cache off). Results go to `data/benchmark/results.json` and the **Benchmark** page shows time, cost, success rate and model calls per task. Only measured numbers are shown.
 
 ## Tests
-
+ 
 ```bash
 cd backend && .venv/Scripts/python -m pytest -q
 ```
