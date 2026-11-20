@@ -1,5 +1,9 @@
 # Blink: the LLM plans, Jev clicks
 
+
+
+https://github.com/user-attachments/assets/e480f985-feee-4487-bf9c-fb7b2d5798cb
+
 Blink is a web agent built for the Jevathon. It does multi-site research tasks much faster and more cheaply than "LLM looks at every screenshot" agents.
 
 - An **LLM** (via OpenRouter) turns your goal into a plan of **independent branches**.
